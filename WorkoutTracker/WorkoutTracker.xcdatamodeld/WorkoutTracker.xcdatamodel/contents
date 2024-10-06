@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22758" systemVersion="23A344" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
+    <entity name="Goals" representedClassName="Goals" syncable="YES">
+        <attribute name="cardio" optional="YES" attributeType="String"/>
+        <attribute name="flexibility" optional="YES" attributeType="String"/>
+        <attribute name="strength" optional="YES" attributeType="String"/>
+        <attribute name="weight" optional="YES" attributeType="String"/>
+    </entity>
+    <entity name="MetricType" representedClassName="MetricType" syncable="YES">
+        <attribute name="alternativeUnits" optional="YES" attributeType="String"/>
+        <attribute name="defaultUnit" optional="YES" attributeType="String"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+    </entity>
+    <entity name="Movement" representedClassName="Movement" syncable="YES">
+        <attribute name="movementClass" optional="YES" attributeType="String"/>
+        <attribute name="movementDescription" optional="YES" attributeType="String"/>
+        <attribute name="movementId" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="movementPhoto" optional="YES" attributeType="Binary"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="type" optional="YES" attributeType="String"/>
+        <relationship name="movementLogs" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="MovementLog" inverseName="movement" inverseEntity="MovementLog"/>
+        <relationship name="splitDayMovement" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="SplitDayMovement" inverseName="movement" inverseEntity="SplitDayMovement"/>
+        <relationship name="splitDays" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SplitDay" inverseName="movements" inverseEntity="SplitDay"/>
+    </entity>
+    <entity name="MovementLog" representedClassName="MovementLog" syncable="YES">
+        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="movementLogId" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="notes" optional="YES" attributeType="String"/>
+        <attribute name="reps" optional="YES" attributeType="String"/>
+        <attribute name="weight" optional="YES" attributeType="String"/>
+        <relationship name="movement" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Movement" inverseName="movementLogs" inverseEntity="Movement"/>
+        <relationship name="sets" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="SetEntity" inverseName="movementLog" inverseEntity="SetEntity"/>
+        <relationship name="workout" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Workout" inverseName="movementLogs" inverseEntity="Workout"/>
+    </entity>
+    <entity name="SetEntity" representedClassName="SetEntity" syncable="YES">
+        <attribute name="notes" optional="YES" attributeType="String"/>
+        <attribute name="primaryMetricType" optional="YES" attributeType="String"/>
+        <attribute name="primaryMetricUnit" optional="YES" attributeType="String"/>
+        <attribute name="primaryMetricValue" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="secondaryMetricType" optional="YES" attributeType="String"/>
+        <attribute name="secondaryMetricUnit" optional="YES" attributeType="String"/>
+        <attribute name="secondaryMetricValue" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="setEntityId" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="setNumber" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <relationship name="movementLog" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="MovementLog" inverseName="sets" inverseEntity="MovementLog"/>
+    </entity>
+    <entity name="SplitDay" representedClassName="SplitDay" syncable="YES">
+        <attribute name="dayName" optional="YES" attributeType="String"/>
+        <attribute name="dayNumber" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="isCompleted" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="splitDayId" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <relationship name="movements" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Movement" inverseName="splitDays" inverseEntity="Movement"/>
+        <relationship name="splitDayMovements" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="SplitDayMovement" inverseName="splitDay" inverseEntity="SplitDayMovement"/>
+        <relationship name="workoutSplit" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="WorkoutSplit" inverseName="splitDays" inverseEntity="WorkoutSplit"/>
+        <relationship name="workoutSplitDay" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="WorkoutSplitDay" inverseName="splitDay" inverseEntity="WorkoutSplitDay"/>
+    </entity>
+    <entity name="SplitDayMovement" representedClassName="SplitDayMovement" syncable="YES">
+        <attribute name="order" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <relationship name="movement" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Movement" inverseName="splitDayMovement" inverseEntity="Movement"/>
+        <relationship name="splitDay" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SplitDay" inverseName="splitDayMovements" inverseEntity="SplitDay"/>
+    </entity>
+    <entity name="Workout" representedClassName="Workout" syncable="YES">
+        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="postNotes" optional="YES" attributeType="String"/>
+        <attribute name="postPainLevel" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="prePainLevel" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="splitDayNumber" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="workoutFocus" optional="YES" attributeType="String"/>
+        <attribute name="workoutId" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="workoutName" optional="YES" attributeType="String"/>
+        <relationship name="movementLogs" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="MovementLog" inverseName="workout" inverseEntity="MovementLog"/>
+        <relationship name="workoutSplit" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="WorkoutSplit" inverseName="workouts" inverseEntity="WorkoutSplit"/>
+        <relationship name="workoutSplitDay" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="WorkoutSplitDay" inverseName="workout" inverseEntity="WorkoutSplitDay"/>
+    </entity>
+    <entity name="WorkoutSplit" representedClassName="WorkoutSplit" syncable="YES">
+        <attribute name="createdDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="isActive" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="lastModifiedDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="splitId" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="splitName" optional="YES" attributeType="String"/>
+        <relationship name="splitDays" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="SplitDay" inverseName="workoutSplit" inverseEntity="SplitDay"/>
+        <relationship name="workouts" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Workout" inverseName="workoutSplit" inverseEntity="Workout"/>
+    </entity>
+    <entity name="WorkoutSplitDay" representedClassName="WorkoutSplitDay" syncable="YES">
+        <relationship name="splitDay" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SplitDay" inverseName="workoutSplitDay" inverseEntity="SplitDay"/>
+        <relationship name="workout" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Workout" inverseName="workoutSplitDay" inverseEntity="Workout"/>
+    </entity>
+</model>
