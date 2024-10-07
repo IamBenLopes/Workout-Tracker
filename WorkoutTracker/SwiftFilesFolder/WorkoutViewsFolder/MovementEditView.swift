@@ -32,8 +32,31 @@ struct MovementEditView: View {
                     }
                 }
                 
-                TextEditor(text: $description)
-                    .frame(height: 100)
+                VStack(alignment: .leading) {
+                    Text("Description")
+                        .font(.headline)
+                    TextEditor(text: $description)
+                        .frame(height: 150)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
+                        )
+                    HStack {
+                        Button(action: { applyTextStyle(.bold) }) {
+                            Image(systemName: "bold")
+                        }
+                        Button(action: { applyTextStyle(.italic) }) {
+                            Image(systemName: "italic")
+                        }
+                        Button(action: { applyTextStyle(.underline) }) {
+                            Image(systemName: "underline")
+                        }
+                        Button(action: addBulletPoint) {
+                            Image(systemName: "list.bullet")
+                        }
+                    }
+                    .padding(.top, 8)
+                }
             }
             
             Section(header: Text("Movement Photo")) {
@@ -59,7 +82,7 @@ struct MovementEditView: View {
                 .foregroundColor(.red)
             }
         }
-        .navigationTitle("Edit Movement")
+        .navigationBarTitle("Edit Movement", displayMode: .inline)
         .sheet(isPresented: $showingImagePicker, onDismiss: loadImage) {
             ImagePicker(image: $inputImage)
         }
@@ -93,7 +116,30 @@ struct MovementEditView: View {
             print("Failed to delete movement: \(error)")
         }
     }
+    
+    private func applyTextStyle(_ style: TextStyle) {
+        switch style {
+        case .bold:
+            description += "**Bold Text**"
+        case .italic:
+            description += "*Italic Text*"
+        case .underline:
+            description += "_Underlined Text_"
+        }
+    }
+    
+    private func addBulletPoint() {
+        description += "\n• "
+    }
 }
+
+enum TextStyle {
+    case bold
+    case italic
+    case underline
+}
+
+// Keep the existing ImagePicker struct
 
 struct ImagePicker: UIViewControllerRepresentable {
     @Binding var image: UIImage?

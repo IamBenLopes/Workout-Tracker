@@ -40,19 +40,18 @@ struct MovementHistoryView: View {
 struct MovementDetailView: View {
     @ObservedObject var movement: Movement
     @State private var showingEditView = false
+    @State private var movementLogs: [MovementLog] = []
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+        List {
+            Section(header: Text("Movement Details")) {
                 Text(movement.name ?? "Unknown Movement")
-                    .font(.title)
-                
+                    .font(.headline)
                 Text("Class: \(movement.movementClass ?? "Unknown")")
-                    .font(.subheadline)
                 
                 if let description = movement.movementDescription, !description.isEmpty {
                     Text("Description:")
-                        .font(.headline)
+                        .font(.subheadline)
                     Text(description)
                 }
                 
@@ -62,34 +61,22 @@ struct MovementDetailView: View {
                         .scaledToFit()
                         .frame(height: 200)
                 }
-                
-                Text("History:")
-                    .font(.headline)
-                
-                MovementHistoryList(movement: movement)
             }
-            .padding()
+            
+            Section(header: Text("History")) {
+                ForEach(movementLogs, id: \.self) { log in
+                    NavigationLink(destination: MovementHistoryDetailView(movementLog: log)) {
+                        Text(log.formattedDate)
+                    }
+                }
+            }
         }
+        .navigationTitle(movement.name ?? "Movement Details")
         .navigationBarItems(trailing: Button("Edit") {
             showingEditView = true
         })
         .sheet(isPresented: $showingEditView) {
             MovementEditView(movement: movement)
-        }
-    }
-}
-
-struct MovementHistoryList: View {
-    @ObservedObject var movement: Movement
-    @State private var movementLogs: [MovementLog] = []
-    
-    var body: some View {
-        List {
-            ForEach(movementLogs, id: \.self) { log in
-                NavigationLink(destination: MovementLogDetailView(movementLog: log)) {
-                    Text(log.formattedDate)
-                }
-            }
         }
         .onAppear(perform: loadMovementLogs)
     }
@@ -104,14 +91,5 @@ struct MovementHistoryList: View {
         } catch {
             print("Error fetching movement logs: \(error)")
         }
-    }
-}
-
-extension MovementLog {
-    var formattedDate: String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .short
-        return formatter.string(from: date ?? Date())
     }
 }

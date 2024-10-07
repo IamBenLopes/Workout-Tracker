@@ -4,11 +4,8 @@ import CoreData
 struct ExportManagerView: View {
     @Environment(\.managedObjectContext) private var viewContext
     private let exportService: ExportService
-    @State private var exportType: ExportType = .byDate
-    @State private var startDate = Date().addingTimeInterval(-30*24*60*60) // 30 days ago
+    @State private var startDate = Date().addingTimeInterval(-30*24*60*60)
     @State private var endDate = Date()
-    @State private var selectedMonth: Date = Date()
-    @State private var showingDatePicker = false
     @State private var showShareSheet = false
     @State private var exportedFileURL: URL?
     @State private var isExporting = false
@@ -19,37 +16,16 @@ struct ExportManagerView: View {
         self.exportService = ExportService(context: context)
     }
     
-    enum ExportType: String, CaseIterable {
-        case byDate = "Export by Date"
-        case movements = "Export Movements"
-        case workouts = "Export Workouts"
-    }
-    
     var body: some View {
         NavigationView {
             Form {
-                Section(header: Text("Export Type")) {
-                    Picker("Export Type", selection: $exportType) {
-                        ForEach(ExportType.allCases, id: \.self) {
-                            Text($0.rawValue)
-                        }
-                    }
-                    .pickerStyle(SegmentedPickerStyle())
-                }
-                
-                if exportType == .byDate {
-                    Section(header: Text("Date Range")) {
-                        DatePicker("Start Date", selection: $startDate, displayedComponents: .date)
-                        DatePicker("End Date", selection: $endDate, displayedComponents: .date)
-                    }
-                } else {
-                    Section(header: Text("Select Month")) {
-                        DatePicker("Month", selection: $selectedMonth, displayedComponents: .date)
-                    }
+                Section(header: Text("Date Range")) {
+                    DatePicker("Start Date", selection: $startDate, displayedComponents: .date)
+                    DatePicker("End Date", selection: $endDate, displayedComponents: .date)
                 }
                 
                 Section {
-                    Button(action: buttonAction) {
+                    Button(action: generateExport) {
                         Text("Generate Export")
                     }
                     .disabled(isExporting)
@@ -72,38 +48,20 @@ struct ExportManagerView: View {
                             Text("Exporting...")
                         }
                         .padding()
-                        .background(Color.secondary)
+                        .background(Color.secondary.colorInvert())
                         .cornerRadius(10)
                         .shadow(radius: 10)
                     }
                 }
             )
-
         }
-    }
-    
-    private func buttonAction() {
-        generateExport()
     }
     
     private func generateExport() {
         isExporting = true
         
-        let exportStartDate: Date
-        let exportEndDate: Date
-        
-        if exportType == .byDate {
-            exportStartDate = startDate
-            exportEndDate = endDate
-        } else {
-            let calendar = Calendar.current
-            let components = calendar.dateComponents([.year, .month], from: selectedMonth)
-            exportStartDate = calendar.date(from: components)!
-            exportEndDate = calendar.date(byAdding: DateComponents(month: 1, day: -1), to: exportStartDate)!
-        }
-        
         DispatchQueue.global(qos: .userInitiated).async {
-            if let pdfURL = exportService.generatePDF(for: exportType, startDate: exportStartDate, endDate: exportEndDate) {
+            if let pdfURL = exportService.generatePDF(startDate: startDate, endDate: endDate) {
                 DispatchQueue.main.async {
                     exportedFileURL = pdfURL
                     showShareSheet = true

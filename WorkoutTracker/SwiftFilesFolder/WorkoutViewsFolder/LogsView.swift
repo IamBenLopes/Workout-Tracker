@@ -62,22 +62,3 @@ struct WorkoutRowView: View {
         return workout.date.map { dateFormatter.string(from: $0) } ?? "Unknown Date"
     }
 }
-
-    extension Workout {
-        var displayName: String {
-            if let workoutSplitDays = self.workoutSplitDay as? Set<WorkoutSplitDay>,
-               let firstSplitDay = workoutSplitDays.first,
-               let splitName = firstSplitDay.splitDay?.workoutSplit?.splitName,
-               let dayNumber = firstSplitDay.splitDay?.dayNumber {
-                return "\(splitName): Day \(dayNumber)"
-            } else if let customName = self.workoutName, !customName.isEmpty {
-                return customName
-            } else {
-                let dateFormatter = DateFormatter()
-                dateFormatter.dateStyle = .medium
-                dateFormatter.timeStyle = .none
-                let dateString = self.date.map { dateFormatter.string(from: $0) } ?? "Unknown Date"
-                return "Workout on \(dateString)"
-            }
-        }
-    }

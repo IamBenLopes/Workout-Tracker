@@ -4,22 +4,13 @@ import PDFKit
 
 class ExportService {
     private let context: NSManagedObjectContext
-    
+
     init(context: NSManagedObjectContext) {
         self.context = context
     }
-    
-    func generatePDF(for exportType: ExportManagerView.ExportType, startDate: Date, endDate: Date) -> URL? {
-        let pdfData: Data
-        
-        switch exportType {
-        case .byDate:
-            pdfData = generateDateRangePDF(startDate: startDate, endDate: endDate)
-        case .movements:
-            pdfData = generateMovementsPDF(startDate: startDate, endDate: endDate)
-        case .workouts:
-            pdfData = generateWorkoutsPDF(startDate: startDate, endDate: endDate)
-        }
+
+    func generatePDF(startDate: Date, endDate: Date) -> URL? {
+        let pdfData = generateMovementsPDF(startDate: startDate, endDate: endDate)
         
         let tempDir = FileManager.default.temporaryDirectory
         let fileName = "export_\(Date().formatted(.iso8601)).pdf"
@@ -27,6 +18,7 @@ class ExportService {
         
         do {
             try pdfData.write(to: fileURL)
+            print("PDF file saved successfully at: \(fileURL.path)")
             return fileURL
         } catch {
             print("Error saving PDF: \(error)")
@@ -34,51 +26,11 @@ class ExportService {
         }
     }
     
-    private func generateDateRangePDF(startDate: Date, endDate: Date) -> Data {
-        let pdfMetaData = [
-            kCGPDFContextCreator: "Workout Tracker",
-            kCGPDFContextAuthor: "User",
-            kCGPDFContextTitle: "Workout Data Export"
-        ]
-        let format = UIGraphicsPDFRendererFormat()
-        format.documentInfo = pdfMetaData as [String: Any]
-        
-        let pageWidth = 8.5 * 72.0
-        let pageHeight = 11 * 72.0
-        let pageRect = CGRect(x: 0, y: 0, width: pageWidth, height: pageHeight)
-        
-        let renderer = UIGraphicsPDFRenderer(bounds: pageRect, format: format)
-        
-        let data = renderer.pdfData { (context) in
-            context.beginPage()
-            let titleBottom = addTitle(pageRect: pageRect, text: "Workout Data Export")
-            
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateStyle = .medium
-            
-            let dateRangeString = "Date Range: \(dateFormatter.string(from: startDate)) - \(dateFormatter.string(from: endDate))"
-            var yOffset = addText(pageRect: pageRect, text: dateRangeString, textTop: titleBottom + 20)
-            
-            let workouts = fetchWorkouts(startDate: startDate, endDate: endDate)
-            yOffset = addWorkoutsSummary(pageRect: pageRect, workouts: workouts, yOffset: yOffset + 20)
-            
-            for workout in workouts {
-                if yOffset > pageRect.height - 100 {
-                    context.beginPage()
-                    yOffset = 20
-                }
-                yOffset = addWorkoutDetails(pageRect: pageRect, workout: workout, yOffset: yOffset)
-            }
-        }
-        
-        return data
-    }
-    
     private func generateMovementsPDF(startDate: Date, endDate: Date) -> Data {
         let pdfMetaData = [
             kCGPDFContextCreator: "Workout Tracker",
             kCGPDFContextAuthor: "User",
-            kCGPDFContextTitle: "Movements Export"
+            kCGPDFContextTitle: "Movement Data Export"
         ]
         let format = UIGraphicsPDFRendererFormat()
         format.documentInfo = pdfMetaData as [String: Any]
@@ -90,66 +42,293 @@ class ExportService {
         let renderer = UIGraphicsPDFRenderer(bounds: pageRect, format: format)
         
         let data = renderer.pdfData { (context) in
+            var currentPageNumber = 1
             context.beginPage()
-            let titleBottom = addTitle(pageRect: pageRect, text: "Movements Export")
+            var yOffset = addHeader(pageRect: pageRect)
+            yOffset = addTitle(pageRect: pageRect, text: "Movement Data Export", yOffset: yOffset)
             
             let dateFormatter = DateFormatter()
             dateFormatter.dateStyle = .medium
             
             let dateRangeString = "Date Range: \(dateFormatter.string(from: startDate)) - \(dateFormatter.string(from: endDate))"
-            var yOffset = addText(pageRect: pageRect, text: dateRangeString, textTop: titleBottom + 20)
+            yOffset = addText(pageRect: pageRect, text: dateRangeString, yOffset: yOffset, fontSize: 12)
             
-            let movements = fetchMovements(startDate: startDate, endDate: endDate)
-            for movement in movements {
+            let workouts = fetchWorkouts(startDate: startDate, endDate: endDate)
+            print("Number of workouts fetched: \(workouts.count)")
+            
+            for (index, workout) in workouts.enumerated() {
+                print("Processing workout \(index + 1) of \(workouts.count)")
+                
                 if yOffset > pageRect.height - 100 {
+                    addFooter(pageRect: pageRect, pageNumber: currentPageNumber)
                     context.beginPage()
-                    yOffset = 20
+                    currentPageNumber += 1
+                    yOffset = addHeader(pageRect: pageRect)
                 }
-                yOffset = addMovementDetails(pageRect: pageRect, movement: movement, startDate: startDate, endDate: endDate, yOffset: yOffset)
+                yOffset = addWorkoutDetails(pageRect: pageRect, workout: workout, yOffset: yOffset, context: context, currentPageNumber: &currentPageNumber)
             }
+            addFooter(pageRect: pageRect, pageNumber: currentPageNumber)
         }
         
         return data
     }
     
-    private func generateWorkoutsPDF(startDate: Date, endDate: Date) -> Data {
-        let pdfMetaData = [
-            kCGPDFContextCreator: "Workout Tracker",
-            kCGPDFContextAuthor: "User",
-            kCGPDFContextTitle: "Workouts Export"
+    private func addHeader(pageRect: CGRect) -> CGFloat {
+        let headerFont = UIFont.boldSystemFont(ofSize: 12)
+        let headerAttributes: [NSAttributedString.Key: Any] = [
+            .font: headerFont,
+            .foregroundColor: UIColor.darkGray
         ]
-        let format = UIGraphicsPDFRendererFormat()
-        format.documentInfo = pdfMetaData as [String: Any]
+        let headerText = "Workout Tracker"
+        let headerRect = CGRect(x: 36, y: 36, width: pageRect.width - 72, height: 20)
+        headerText.draw(in: headerRect, withAttributes: headerAttributes)
         
-        let pageWidth = 8.5 * 72.0
-        let pageHeight = 11 * 72.0
-        let pageRect = CGRect(x: 0, y: 0, width: pageWidth, height: pageHeight)
+        let path = UIBezierPath()
+        path.move(to: CGPoint(x: 36, y: 60))
+        path.addLine(to: CGPoint(x: pageRect.width - 36, y: 60))
+        UIColor.lightGray.setStroke()
+        path.stroke()
         
-        let renderer = UIGraphicsPDFRenderer(bounds: pageRect, format: format)
+        return 70
+    }
+    
+    private func addTitle(pageRect: CGRect, text: String, yOffset: CGFloat) -> CGFloat {
+        let titleFont = UIFont.boldSystemFont(ofSize: 24)
+        let titleAttributes: [NSAttributedString.Key: Any] = [
+            .font: titleFont,
+            .foregroundColor: UIColor.black
+        ]
+        let titleSize = text.size(withAttributes: titleAttributes)
+        let titleRect = CGRect(x: (pageRect.width - titleSize.width) / 2, y: yOffset, width: titleSize.width, height: titleSize.height)
+        text.draw(in: titleRect, withAttributes: titleAttributes)
+        return yOffset + titleSize.height + 10
+    }
+    
+    private func addText(pageRect: CGRect, text: String, yOffset: CGFloat, fontSize: CGFloat = 12, color: UIColor = .black, alignment: NSTextAlignment = .left) -> CGFloat {
+        let font = UIFont.systemFont(ofSize: fontSize)
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.alignment = alignment
+        paragraphStyle.lineBreakMode = .byWordWrapping
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: font,
+            .foregroundColor: color,
+            .paragraphStyle: paragraphStyle
+        ]
+        let textRect = CGRect(x: 36, y: yOffset, width: pageRect.width - 72, height: CGFloat.greatestFiniteMagnitude)
+        let textSize = text.boundingRect(with: CGSize(width: textRect.width, height: CGFloat.greatestFiniteMagnitude),
+                                         options: .usesLineFragmentOrigin,
+                                         attributes: attributes,
+                                         context: nil)
+        text.draw(in: CGRect(x: textRect.minX, y: yOffset, width: textRect.width, height: textSize.height), withAttributes: attributes)
+        return yOffset + textSize.height + 5
+    }
+    
+    private func addWorkoutDetails(pageRect: CGRect, workout: Workout, yOffset: CGFloat, context: UIGraphicsPDFRendererContext, currentPageNumber: inout Int) -> CGFloat {
+        var currentYOffset = yOffset
         
-        let data = renderer.pdfData { (context) in
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .medium
+        dateFormatter.timeStyle = .short
+        
+        if currentYOffset + 50 > pageRect.height - 50 {
+            addFooter(pageRect: pageRect, pageNumber: currentPageNumber)
             context.beginPage()
-            let titleBottom = addTitle(pageRect: pageRect, text: "Workouts Export")
-            
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateStyle = .medium
-            
-            let dateRangeString = "Date Range: \(dateFormatter.string(from: startDate)) - \(dateFormatter.string(from: endDate))"
-            var yOffset = addText(pageRect: pageRect, text: dateRangeString, textTop: titleBottom + 20)
-            
-            let workouts = fetchWorkouts(startDate: startDate, endDate: endDate)
-            yOffset = addWorkoutsSummary(pageRect: pageRect, workouts: workouts, yOffset: yOffset + 20)
-            
-            for workout in workouts {
-                if yOffset > pageRect.height - 100 {
+            currentPageNumber += 1
+            currentYOffset = addHeader(pageRect: pageRect)
+        }
+        
+        currentYOffset = addText(pageRect: pageRect, text: "Workout on \(dateFormatter.string(from: workout.date ?? Date()))", yOffset: currentYOffset, fontSize: 16, color: .blue)
+        
+        // Workout details table
+        let detailsItems: [(String, String)] = [
+            ("Name", workout.workoutName ?? "N/A"),
+            ("Focus", workout.workoutFocus ?? "N/A"),
+            ("Pre-workout Pain", "\(workout.prePainLevel)"),
+            ("Post-workout Pain", "\(workout.postPainLevel)"),
+            ("Notes", workout.postNotes ?? "")
+        ]
+
+        
+        currentYOffset = addDetailsTable(pageRect: pageRect, headers: ["Detail", "Value"], rows: detailsItems, yOffset: currentYOffset + 10, context: context, currentPageNumber: &currentPageNumber)
+        
+        if let movementLogs = workout.movementLogs as? Set<MovementLog> {
+            for movementLog in movementLogs {
+                if currentYOffset + 30 > pageRect.height - 50 {
+                    addFooter(pageRect: pageRect, pageNumber: currentPageNumber)
                     context.beginPage()
-                    yOffset = 20
+                    currentPageNumber += 1
+                    currentYOffset = addHeader(pageRect: pageRect)
                 }
-                yOffset = addWorkoutDetails(pageRect: pageRect, workout: workout, yOffset: yOffset)
+                currentYOffset = addText(pageRect: pageRect, text: "\(movementLog.movement?.name ?? "Unknown")", yOffset: currentYOffset + 10, fontSize: 14, color: .darkGray)
+                
+                if let sets = movementLog.sets as? Set<SetEntity> {
+                    let sortedSets = sets.sorted(by: { $0.setNumber < $1.setNumber })
+                    guard let firstSet = sortedSets.first else { continue }
+                    
+                    let primaryMetricType = firstSet.primaryMetricType ?? "Metric 1"
+                    let secondaryMetricType = firstSet.secondaryMetricType ?? "Metric 2"
+                    
+                    let headers = ["Set", primaryMetricType, secondaryMetricType, "Notes"]
+                    let setRows: [[String]] = sortedSets.map { set in
+                        return [
+                            "\(set.setNumber)",
+                            "\(set.primaryMetricValue) \(set.primaryMetricUnit ?? "")",
+                            "\(set.secondaryMetricValue) \(set.secondaryMetricUnit ?? "")",
+                            set.notes ?? ""
+                        ]
+                    }
+                    currentYOffset = addTable(pageRect: pageRect, headers: headers, rows: setRows, yOffset: currentYOffset + 10, context: context, currentPageNumber: &currentPageNumber)
+                }
             }
         }
         
-        return data
+        return currentYOffset + 20
+    }
+    
+    private func addDetailsTable(pageRect: CGRect, headers: [String], rows: [(String, String)], yOffset: CGFloat, context: UIGraphicsPDFRendererContext, currentPageNumber: inout Int) -> CGFloat {
+        var currentYOffset = yOffset
+        let maxTableWidth = pageRect.width - 72
+        let columnCount = headers.count
+        let columnWidth = maxTableWidth / CGFloat(columnCount)
+        
+        // Draw headers
+        let headerHeights = headers.map { header -> CGFloat in
+            return heightForText(text: header, width: columnWidth - 4, font: UIFont.boldSystemFont(ofSize: 10))
+        }
+        let headerHeight = headerHeights.max() ?? 20
+        
+        for (index, header) in headers.enumerated() {
+            let rect = CGRect(x: 36 + CGFloat(index) * columnWidth, y: currentYOffset, width: columnWidth, height: headerHeight)
+            drawTableCell(text: header, in: rect, isHeader: true)
+        }
+        currentYOffset += headerHeight
+        
+        // Draw rows
+        for row in rows {
+            let texts = [row.0, row.1]
+            let cellHeights = texts.enumerated().map { (index, text) -> CGFloat in
+                return heightForText(text: text, width: columnWidth - 4, font: UIFont.systemFont(ofSize: 10))
+            }
+            let maxCellHeight = cellHeights.max() ?? 20
+            
+            if currentYOffset + maxCellHeight > pageRect.height - 50 {
+                addFooter(pageRect: pageRect, pageNumber: currentPageNumber)
+                context.beginPage()
+                currentPageNumber += 1
+                currentYOffset = addHeader(pageRect: pageRect)
+                
+                // Redraw headers on new page
+                for (index, header) in headers.enumerated() {
+                    let rect = CGRect(x: 36 + CGFloat(index) * columnWidth, y: currentYOffset, width: columnWidth, height: headerHeight)
+                    drawTableCell(text: header, in: rect, isHeader: true)
+                }
+                currentYOffset += headerHeight
+            }
+            
+            for (index, text) in texts.enumerated() {
+                let rect = CGRect(x: 36 + CGFloat(index) * columnWidth, y: currentYOffset, width: columnWidth, height: maxCellHeight)
+                drawTableCell(text: text, in: rect, isHeader: false)
+            }
+            currentYOffset += maxCellHeight
+        }
+        
+        return currentYOffset
+    }
+    
+    private func addTable(pageRect: CGRect, headers: [String], rows: [[String]], yOffset: CGFloat, context: UIGraphicsPDFRendererContext, currentPageNumber: inout Int) -> CGFloat {
+        var currentYOffset = yOffset
+        let maxTableWidth = pageRect.width - 72
+        let columnCount = headers.count
+        let columnWidth = maxTableWidth / CGFloat(columnCount)
+        
+        let rowHeights: [CGFloat] = rows.map { row in
+            let cellHeights = row.enumerated().map { (index, text) -> CGFloat in
+                return heightForText(text: text, width: columnWidth - 4, font: UIFont.systemFont(ofSize: 10))
+            }
+            return cellHeights.max() ?? 20
+        }
+        
+        let headerHeights = headers.map { header -> CGFloat in
+            return heightForText(text: header, width: columnWidth - 4, font: UIFont.boldSystemFont(ofSize: 10))
+        }
+        let headerHeight = headerHeights.max() ?? 20
+        
+        // Draw headers
+        for (index, header) in headers.enumerated() {
+            let rect = CGRect(x: 36 + CGFloat(index) * columnWidth, y: currentYOffset, width: columnWidth, height: headerHeight)
+            drawTableCell(text: header, in: rect, isHeader: true)
+        }
+        currentYOffset += headerHeight
+        
+        // Draw rows
+        for (rowIndex, row) in rows.enumerated() {
+            let maxCellHeight = rowHeights[rowIndex]
+            
+            if currentYOffset + maxCellHeight > pageRect.height - 50 {
+                addFooter(pageRect: pageRect, pageNumber: currentPageNumber)
+                context.beginPage()
+                currentPageNumber += 1
+                currentYOffset = addHeader(pageRect: pageRect)
+                
+                // Redraw headers on new page
+                for (index, header) in headers.enumerated() {
+                    let rect = CGRect(x: 36 + CGFloat(index) * columnWidth, y: currentYOffset, width: columnWidth, height: headerHeight)
+                    drawTableCell(text: header, in: rect, isHeader: true)
+                }
+                currentYOffset += headerHeight
+            }
+            
+            for (index, text) in row.enumerated() {
+                let rect = CGRect(x: 36 + CGFloat(index) * columnWidth, y: currentYOffset, width: columnWidth, height: maxCellHeight)
+                drawTableCell(text: text, in: rect, isHeader: false)
+            }
+            currentYOffset += maxCellHeight
+        }
+        
+        return currentYOffset
+    }
+    
+    private func drawTableCell(text: String, in rect: CGRect, isHeader: Bool) {
+        let context = UIGraphicsGetCurrentContext()
+        context?.setStrokeColor(UIColor.black.cgColor)
+        context?.setLineWidth(0.5)
+        context?.stroke(rect)
+        
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.alignment = .center
+        paragraphStyle.lineBreakMode = .byWordWrapping
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: isHeader ? UIFont.boldSystemFont(ofSize: 10) : UIFont.systemFont(ofSize: 10),
+            .paragraphStyle: paragraphStyle
+        ]
+        
+        let insetRect = rect.insetBy(dx: 2, dy: 2)
+        (text as NSString).draw(in: insetRect, withAttributes: attributes)
+    }
+    
+    private func heightForText(text: String, width: CGFloat, font: UIFont) -> CGFloat {
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: font,
+            .paragraphStyle: NSMutableParagraphStyle()
+        ]
+        let maxSize = CGSize(width: width, height: CGFloat.greatestFiniteMagnitude)
+        let textSize = text.boundingRect(with: maxSize,
+                                         options: .usesLineFragmentOrigin,
+                                         attributes: attributes,
+                                         context: nil).size
+        return ceil(textSize.height) + 4
+    }
+    
+    private func addFooter(pageRect: CGRect, pageNumber: Int) {
+        let footer = "Page \(pageNumber)"
+        let font = UIFont.systemFont(ofSize: 10)
+        let attributes = [NSAttributedString.Key.font: font]
+        let footerSize = footer.size(withAttributes: attributes)
+        let footerRect = CGRect(x: (pageRect.width - footerSize.width) / 2,
+                                y: pageRect.height - 36,
+                                width: footerSize.width,
+                                height: footerSize.height)
+        footer.draw(in: footerRect, withAttributes: attributes)
     }
     
     private func fetchWorkouts(startDate: Date, endDate: Date) -> [Workout] {
@@ -161,131 +340,6 @@ class ExportService {
             return try context.fetch(request)
         } catch {
             print("Error fetching workouts: \(error)")
-            return []
-        }
-    }
-    
-    private func fetchMovements(startDate: Date, endDate: Date) -> [Movement] {
-        let request: NSFetchRequest<Movement> = Movement.fetchRequest()
-        request.predicate = NSPredicate(format: "ANY movementLogs.workout.date >= %@ AND ANY movementLogs.workout.date <= %@", startDate as NSDate, endDate as NSDate)
-        request.sortDescriptors = [NSSortDescriptor(keyPath: \Movement.name, ascending: true)]
-        
-        do {
-            return try context.fetch(request)
-        } catch {
-            print("Error fetching movements: \(error)")
-            return []
-        }
-    }
-    
-    private func addTitle(pageRect: CGRect, text: String) -> CGFloat {
-        let titleFont = UIFont.boldSystemFont(ofSize: 18.0)
-        let titleAttributes: [NSAttributedString.Key: Any] = [NSAttributedString.Key.font: titleFont]
-        let attributedTitle = NSAttributedString(string: text, attributes: titleAttributes)
-        let titleStringSize = attributedTitle.size()
-        let titleStringRect = CGRect(x: (pageRect.width - titleStringSize.width) / 2.0,
-                                     y: 36,
-                                     width: titleStringSize.width,
-                                     height: titleStringSize.height)
-        attributedTitle.draw(in: titleStringRect)
-        return titleStringRect.origin.y + titleStringRect.size.height
-    }
-    
-    private func addText(pageRect: CGRect, text: String, textTop: CGFloat) -> CGFloat {
-        let textFont = UIFont.systemFont(ofSize: 12.0)
-        let textAttributes: [NSAttributedString.Key: Any] = [NSAttributedString.Key.font: textFont]
-        let attributedText = NSAttributedString(string: text, attributes: textAttributes)
-        let textRect = CGRect(x: 10, y: textTop, width: pageRect.width - 20, height: pageRect.height - textTop - 10)
-        attributedText.draw(in: textRect)
-        return textTop + attributedText.size().height
-    }
-    
-    private func addWorkoutsSummary(pageRect: CGRect, workouts: [Workout], yOffset: CGFloat) -> CGFloat {
-        var currentYOffset = yOffset
-        
-        let totalWorkouts = workouts.count
-        
-        var totalMovements = 0
-        var totalSets = 0
-        
-        for workout in workouts {
-            if let movementLogs = workout.movementLogs as? Set<MovementLog> {
-                totalMovements += movementLogs.count
-                for movementLog in movementLogs {
-                    if let sets = movementLog.sets as? Set<SetEntity> {
-                        totalSets += sets.count
-                    }
-                }
-            }
-        }
-        
-        currentYOffset = addText(pageRect: pageRect, text: "Total Workouts: \(totalWorkouts)", textTop: currentYOffset + 10)
-        currentYOffset = addText(pageRect: pageRect, text: "Total Movements: \(totalMovements)", textTop: currentYOffset + 5)
-        currentYOffset = addText(pageRect: pageRect, text: "Total Sets: \(totalSets)", textTop: currentYOffset + 5)
-        
-        return currentYOffset
-    }
-    
-    private func addWorkoutDetails(pageRect: CGRect, workout: Workout, yOffset: CGFloat) -> CGFloat {
-        var currentYOffset = yOffset
-        
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateStyle = .medium
-        dateFormatter.timeStyle = .short
-        
-        currentYOffset = addText(pageRect: pageRect, text: "Workout Date: \(dateFormatter.string(from: workout.date ?? Date()))", textTop: currentYOffset + 20)
-        currentYOffset = addText(pageRect: pageRect, text: "Focus: \(workout.workoutFocus ?? "N/A")", textTop: currentYOffset + 5)
-        currentYOffset = addText(pageRect: pageRect, text: "Pre-workout Pain: \(workout.prePainLevel)", textTop: currentYOffset + 5)
-        currentYOffset = addText(pageRect: pageRect, text: "Post-workout Pain: \(workout.postPainLevel)", textTop: currentYOffset + 5)
-        
-        if let movementLogs = workout.movementLogs as? Set<MovementLog> {
-            for movementLog in movementLogs {
-                currentYOffset = addText(pageRect: pageRect, text: "Movement: \(movementLog.movement?.name ?? "Unknown")", textTop: currentYOffset + 10)
-                if let sets = movementLog.sets as? Set<SetEntity> {
-                    for set in sets.sorted(by: { $0.setNumber < $1.setNumber }) {
-                        currentYOffset = addText(pageRect: pageRect, text: "  Set \(set.setNumber): \(set.primaryMetricValue) \(set.primaryMetricUnit ?? "") \(set.primaryMetricType ?? ""), \(set.secondaryMetricValue) \(set.secondaryMetricUnit ?? "") \(set.secondaryMetricType ?? "")", textTop: currentYOffset + 5)
-                    }
-                }
-            }
-        }
-        
-        return currentYOffset
-    }
-    
-    private func addMovementDetails(pageRect: CGRect, movement: Movement, startDate: Date, endDate: Date, yOffset: CGFloat) -> CGFloat {
-        var currentYOffset = yOffset
-        
-        currentYOffset = addText(pageRect: pageRect, text: "Movement: \(movement.name ?? "Unknown")", textTop: currentYOffset + 20)
-        currentYOffset = addText(pageRect: pageRect, text: "Type: \(movement.movementClass ?? "Unknown")", textTop: currentYOffset + 5)
-        
-        let movementLogs = fetchMovementLogs(for: movement, startDate: startDate, endDate: endDate)
-        
-        for movementLog in movementLogs {
-            if let workout = movementLog.workout, let date = workout.date {
-                let dateFormatter = DateFormatter()
-                dateFormatter.dateStyle = .medium
-                currentYOffset = addText(pageRect: pageRect, text: "Date: \(dateFormatter.string(from: date))", textTop: currentYOffset + 10)
-                
-                if let sets = movementLog.sets as? Set<SetEntity> {
-                    for set in sets.sorted(by: { $0.setNumber < $1.setNumber }) {
-                        currentYOffset = addText(pageRect: pageRect, text: "  Set \(set.setNumber): \(set.primaryMetricValue) \(set.primaryMetricUnit ?? "") \(set.primaryMetricType ?? ""), \(set.secondaryMetricValue) \(set.secondaryMetricUnit ?? "") \(set.secondaryMetricType ?? "")", textTop: currentYOffset + 5)
-                    }
-                }
-            }
-        }
-        
-        return currentYOffset
-    }
-    
-    private func fetchMovementLogs(for movement: Movement, startDate: Date, endDate: Date) -> [MovementLog] {
-        let request: NSFetchRequest<MovementLog> = MovementLog.fetchRequest()
-        request.predicate = NSPredicate(format: "movement == %@ AND workout.date >= %@ AND workout.date <= %@", movement, startDate as NSDate, endDate as NSDate)
-        request.sortDescriptors = [NSSortDescriptor(keyPath: \MovementLog.workout?.date, ascending: true)]
-        
-        do {
-            return try context.fetch(request)
-        } catch {
-            print("Error fetching movement logs: \(error)")
             return []
         }
     }

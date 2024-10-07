@@ -70,6 +70,9 @@
 		96DF69622CA74514000B765B /* SetEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96DF69612CA74514000B765B /* SetEditView.swift */; };
 		96DF69642CA74A00000B765B /* SplitWorkoutFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96DF69632CA74A00000B765B /* SplitWorkoutFlow.swift */; };
 		96DF69662CA77016000B765B /* SetRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96DF69652CA77016000B765B /* SetRowView.swift */; };
+		96E46CA92CB35FAD005D8D1F /* MovementHistoryDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96E46CA82CB35FAD005D8D1F /* MovementHistoryDetailView.swift */; };
+		96E46CAC2CB362BA005D8D1F /* RichTextKit in Frameworks */ = {isa = PBXBuildFile; productRef = 96E46CAB2CB362BA005D8D1F /* RichTextKit */; };
+		96E46CAE2CB363FC005D8D1F /* ModelExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96E46CAD2CB363FC005D8D1F /* ModelExtensions.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -156,6 +159,8 @@
 		96DF69612CA74514000B765B /* SetEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetEditView.swift; sourceTree = "<group>"; };
 		96DF69632CA74A00000B765B /* SplitWorkoutFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplitWorkoutFlow.swift; sourceTree = "<group>"; };
 		96DF69652CA77016000B765B /* SetRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetRowView.swift; sourceTree = "<group>"; };
+		96E46CA82CB35FAD005D8D1F /* MovementHistoryDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementHistoryDetailView.swift; sourceTree = "<group>"; };
+		96E46CAD2CB363FC005D8D1F /* ModelExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelExtensions.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -163,6 +168,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				96E46CAC2CB362BA005D8D1F /* RichTextKit in Frameworks */,
 				96CF52872C963E6B0056B52D /* CoreData.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -293,6 +299,7 @@
 				96752F882C9A3167000946F3 /* MovementEditView.swift */,
 				96CF52A92C9661F30056B52D /* MovementEntryView.swift */,
 				96A9C38E2CA79CC9009CFD4B /* MovementGraphView.swift */,
+				96E46CA82CB35FAD005D8D1F /* MovementHistoryDetailView.swift */,
 				961642102C98EC5600D6D05A /* MovementHistoryView.swift */,
 				96752F862C9A2DDA000946F3 /* MovementLogDetailView.swift */,
 				96752F842C9A2DC2000946F3 /* MovementLogEditView.swift */,
@@ -316,6 +323,7 @@
 				967530572CA36A4A000946F3 /* WorkoutSplitDetailView.swift */,
 				967530512CA36923000946F3 /* WorkoutSplitManager.swift */,
 				96CF528B2C963F840056B52D /* WorkoutTrackerApp.swift */,
+				96E46CAD2CB363FC005D8D1F /* ModelExtensions.swift */,
 			);
 			path = WorkoutViewsFolder;
 			sourceTree = "<group>";
@@ -336,6 +344,9 @@
 			dependencies = (
 			);
 			name = WorkoutTracker;
+			packageProductDependencies = (
+				96E46CAB2CB362BA005D8D1F /* RichTextKit */,
+			);
 			productName = "Workout Tracker";
 			productReference = 96CF523F2C96369E0056B52D /* WorkoutTracker.app */;
 			productType = "com.apple.product-type.application";
@@ -408,6 +419,9 @@
 				Base,
 			);
 			mainGroup = 96CF52362C96369E0056B52D;
+			packageReferences = (
+				96E46CAA2CB36155005D8D1F /* XCRemoteSwiftPackageReference "RichTextKit" */,
+			);
 			productRefGroup = 96CF52402C96369E0056B52D /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -481,11 +495,13 @@
 				96CF52452C96369E0056B52D /* ContentView.swift in Sources */,
 				96752F8B2C9A3181000946F3 /* WorkoutEditView.swift in Sources */,
 				96A9C38D2CA79B5C009CFD4B /* ProgressView.swift in Sources */,
+				96E46CA92CB35FAD005D8D1F /* MovementHistoryDetailView.swift in Sources */,
 				967530562CA36A2D000946F3 /* CreateWorkoutSplitView.swift in Sources */,
 				9616420E2C98EC2B00D6D05A /* Goals+CoreDataClass.swift in Sources */,
 				9616420F2C98EC2B00D6D05A /* Goals+CoreDataProperties.swift in Sources */,
 				96DF69662CA77016000B765B /* SetRowView.swift in Sources */,
 				967530522CA36923000946F3 /* WorkoutSplitManager.swift in Sources */,
+				96E46CAE2CB363FC005D8D1F /* ModelExtensions.swift in Sources */,
 				96CF528A2C963EB60056B52D /* WorkoutTracker.xcdatamodeld in Sources */,
 				96CF528C2C963F840056B52D /* WorkoutTrackerApp.swift in Sources */,
 				96CF52842C963B130056B52D /* SetEntryView.swift in Sources */,
@@ -840,6 +856,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		96E46CAA2CB36155005D8D1F /* XCRemoteSwiftPackageReference "RichTextKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/danielsaidi/RichTextKit";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		96E46CAB2CB362BA005D8D1F /* RichTextKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 96E46CAA2CB36155005D8D1F /* XCRemoteSwiftPackageReference "RichTextKit" */;
+			productName = RichTextKit;
+		};
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCVersionGroup section */
 		96CF52882C963EB60056B52D /* WorkoutTracker.xcdatamodeld */ = {
