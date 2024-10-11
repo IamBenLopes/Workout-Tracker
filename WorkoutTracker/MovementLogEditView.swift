@@ -8,12 +8,22 @@ struct MovementLogEditView: View {
     @State private var showSetEntry = false
     @State private var showDeleteConfirmation = false
     @State private var setToDelete: SetEntity?
+    @State private var logDate: Date
+
+    init(movementLog: MovementLog) {
+        self.movementLog = movementLog
+        _logDate = State(initialValue: movementLog.date ?? Date())
+    }
 
     var body: some View {
         Form {
             Section(header: Text("Movement Details")) {
                 Text("Movement: \(movementLog.movement?.name ?? "Unknown")")
-                Text("Date: \(formattedDate)")
+                DatePicker("Date", selection: $logDate, displayedComponents: [.date, .hourAndMinute])
+                    .onChange(of: logDate) { oldValue, newValue in
+                        movementLog.date = newValue
+                        saveContext()
+                    }
             }
 
             Section(header: Text("Sets")) {
@@ -38,12 +48,8 @@ struct MovementLogEditView: View {
         }
         .navigationTitle("Edit Movement Log")
         .navigationBarItems(trailing: Button("Save") {
-            do {
-                try viewContext.save()
-                presentationMode.wrappedValue.dismiss()
-            } catch {
-                print("Error saving movement log: \(error)")
-            }
+            saveContext()
+            presentationMode.wrappedValue.dismiss()
         })
         .sheet(isPresented: $showSetEntry) {
             SetEntryView(movementLog: movementLog)
@@ -56,11 +62,7 @@ struct MovementLogEditView: View {
                 primaryButton: .destructive(Text("Delete")) {
                     if let set = setToDelete {
                         viewContext.delete(set)
-                        do {
-                            try viewContext.save()
-                        } catch {
-                            print("Error deleting set: \(error)")
-                        }
+                        saveContext()
                     }
                 },
                 secondaryButton: .cancel()
@@ -68,7 +70,11 @@ struct MovementLogEditView: View {
         }
     }
 
-    private var formattedDate: String {
-        movementLog.date?.formatted(date: .long, time: .shortened) ?? "Unknown Date"
+    private func saveContext() {
+        do {
+            try viewContext.save()
+        } catch {
+            print("Error saving context: \(error)")
+        }
     }
 }

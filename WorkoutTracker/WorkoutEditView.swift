@@ -6,6 +6,12 @@ struct WorkoutEditView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @ObservedObject var workout: Workout
     @State private var showAddMovement = false
+    @State private var workoutDate: Date
+    
+    init(workout: Workout) {
+        self.workout = workout
+        _workoutDate = State(initialValue: workout.date ?? Date())
+    }
     
     var body: some View {
         Form {
@@ -20,41 +26,21 @@ struct WorkoutEditView: View {
                         .foregroundColor(.gray)
                 }
                 
-                DatePicker("Date", selection: Binding(
-                    get: { self.workout.date ?? Date() },
-                    set: { self.workout.date = $0 }
-                ), displayedComponents: [.date, .hourAndMinute])
+                DatePicker("Date", selection: $workoutDate, displayedComponents: [.date, .hourAndMinute])
+                    .onChange(of: workoutDate) { oldValue, newValue in
+                        workout.date = newValue
+                        saveContext()
+                    }
                 
                 Picker("Workout Focus", selection: Binding(
                     get: { self.workout.workoutFocus ?? "" },
                     set: { self.workout.workoutFocus = $0 }
                 )) {
-                    Text("Not set").tag("")
+                    Text("None").tag("")
                     Text("Strength").tag("Strength")
-                    Text("Cardio").tag("Cardio")
-                    Text("Flexibility").tag("Flexibility")
-                    Text("Recovery").tag("Recovery")
+                    Text("Hypertrophy").tag("Hypertrophy")
+                    Text("Endurance").tag("Endurance")
                 }
-                
-                Stepper(value: Binding(
-                    get: { Double(self.workout.prePainLevel) },
-                    set: { self.workout.prePainLevel = Int16($0) }
-                ), in: 0...10) {
-                    Text("Pre-Workout Pain: \(self.workout.prePainLevel)")
-                }
-                
-                Stepper(value: Binding(
-                    get: { Double(self.workout.postPainLevel) },
-                    set: { self.workout.postPainLevel = Int16($0) }
-                ), in: 0...10) {
-                    Text("Post-Workout Pain: \(self.workout.postPainLevel)")
-                }
-                
-                TextEditor(text: Binding(
-                    get: { self.workout.postNotes ?? "" },
-                    set: { self.workout.postNotes = $0 }
-                ))
-                .frame(height: 100)
             }
             
             Section(header: Text("Movements")) {
@@ -85,6 +71,9 @@ struct WorkoutEditView: View {
             MovementEntryView(workout: workout)
                 .environment(\.managedObjectContext, viewContext)
         }
+        .onDisappear {
+            saveContext()
+        }
     }
     
     private func deleteMovementLog(at offsets: IndexSet) {
@@ -100,9 +89,18 @@ struct WorkoutEditView: View {
         }
     }
     
-}
-    extension Collection {
-        subscript(safe index: Index) -> Element? {
-            return indices.contains(index) ? self[index] : nil
+    private func saveContext() {
+        do {
+            try viewContext.save()
+        } catch {
+            let nsError = error as NSError
+            fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
         }
     }
+}
+
+extension Collection {
+    subscript(safe index: Index) -> Element? {
+        return indices.contains(index) ? self[index] : nil
+    }
+}

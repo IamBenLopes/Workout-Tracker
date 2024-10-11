@@ -12,6 +12,7 @@ struct MovementHistoryDetailView: View {
                 if let workout = movementLog.workout {
                     Text("Workout: \(workout.displayName)")
                 }
+                Text("Muscle Group(s): \(muscleGroupsString)")
             }
             
             Section(header: Text("Sets")) {
@@ -36,6 +37,13 @@ struct MovementHistoryDetailView: View {
             }
         }
         .navigationTitle("Movement Log Details")
+    }
+    
+    private var muscleGroupsString: String {
+        guard let muscleGroups = movementLog.movement?.muscleGroups, !muscleGroups.isEmpty else {
+            return "No muscle group added"
+        }
+        return muscleGroups.compactMap { $0.name }.joined(separator: ", ")
     }
 }
 

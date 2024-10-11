@@ -56,9 +56,12 @@ struct MoreView: View {
                     }
                 }
 
-                Section(header: Text("Muscle Groups")) {
+                Section(header: Text("Muscle Groups and Targets")) {
                     NavigationLink(destination: MuscleGroupListView()) {
                         Label("Manage Muscle Groups", systemImage: "figure.walk")
+                    }
+                    NavigationLink(destination: MuscleGroupTargetsView()) {
+                        Label("Manage Targets", systemImage: "target")
                     }
                 }
                 

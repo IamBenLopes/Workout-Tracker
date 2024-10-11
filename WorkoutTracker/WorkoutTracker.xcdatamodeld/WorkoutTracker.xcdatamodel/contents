@@ -38,6 +38,11 @@
         <attribute name="muscleGroupDescription" optional="YES" attributeType="String"/>
         <attribute name="name" optional="YES" attributeType="String"/>
         <relationship name="movements" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Movement" inverseName="muscleGroups" inverseEntity="Movement"/>
+        <relationship name="muscleGroupTarget" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="MuscleGroupTarget" inverseName="muscleGroup" inverseEntity="MuscleGroupTarget"/>
+    </entity>
+    <entity name="MuscleGroupTarget" representedClassName="MuscleGroupTarget" syncable="YES">
+        <attribute name="targetSetsPerWeek" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <relationship name="muscleGroup" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="MuscleGroup" inverseName="muscleGroupTarget" inverseEntity="MuscleGroup"/>
     </entity>
     <entity name="SetEntity" representedClassName="SetEntity" syncable="YES">
         <attribute name="notes" optional="YES" attributeType="String"/>

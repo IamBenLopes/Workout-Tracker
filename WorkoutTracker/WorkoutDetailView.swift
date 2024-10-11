@@ -61,10 +61,12 @@ struct WorkoutDetailView: View {
     }
 
     private func deleteMovementLog(at offsets: IndexSet) {
-        let movementLogs = workout.movementLogsArray
-        for index in offsets {
-            let movementLog = movementLogs[index]
-            viewContext.delete(movementLog)
+        for offset in offsets {
+            if offset < workout.movementLogsArray.count {
+                let movementLogToDelete = workout.movementLogsArray[offset]
+                viewContext.delete(movementLogToDelete)
+                workout.removeFromMovementLogs(movementLogToDelete)
+            }
         }
         do {
             try viewContext.save()
@@ -77,6 +79,6 @@ struct WorkoutDetailView: View {
 extension Workout {
     var movementLogsArray: [MovementLog] {
         let set = movementLogs as? Set<MovementLog> ?? []
-        return Array(set).sorted { $0.date ?? Date() < $1.date ?? Date() }
+        return set.sorted { ($0.date ?? Date()) < ($1.date ?? Date()) }
     }
 }

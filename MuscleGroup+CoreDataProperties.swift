@@ -16,10 +16,11 @@ extension MuscleGroup {
         return NSFetchRequest<MuscleGroup>(entityName: "MuscleGroup")
     }
 
-    @NSManaged public var name: String?
     @NSManaged public var id: UUID?
     @NSManaged public var muscleGroupDescription: String?
+    @NSManaged public var name: String?
     @NSManaged public var movements: Set<Movement>?
+    @NSManaged public var muscleGroupTarget: MuscleGroupTarget?
 
 }
 
@@ -33,13 +34,13 @@ extension MuscleGroup {
     @NSManaged public func removeFromMovements(_ value: Movement)
 
     @objc(addMovements:)
-    @NSManaged public func addToMovements(_ values: Set<Movement>)
+    @NSManaged public func addToMovements(_ values: NSSet)
 
     @objc(removeMovements:)
-    @NSManaged public func removeFromMovements(_ values: Set<Movement>)
+    @NSManaged public func removeFromMovements(_ values: NSSet)
 
 }
 
-extension MuscleGroup: Identifiable {
+extension MuscleGroup : Identifiable {
 
 }

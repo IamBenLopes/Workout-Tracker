@@ -13,6 +13,9 @@
 		961642142C9A214500D6D05A /* MetricType+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961642122C9A214500D6D05A /* MetricType+CoreDataClass.swift */; };
 		961642152C9A214500D6D05A /* MetricType+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961642132C9A214500D6D05A /* MetricType+CoreDataProperties.swift */; };
 		9656C1472CB99515009F6E18 /* MuscleGroupSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9656C1462CB99515009F6E18 /* MuscleGroupSelectionView.swift */; };
+		9656C1492CB99AA8009F6E18 /* MuscleGroupTargetsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9656C1482CB99AA8009F6E18 /* MuscleGroupTargetsView.swift */; };
+		9656C14C2CB99B78009F6E18 /* MuscleGroupTarget+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9656C14A2CB99B78009F6E18 /* MuscleGroupTarget+CoreDataClass.swift */; };
+		9656C14D2CB99B78009F6E18 /* MuscleGroupTarget+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9656C14B2CB99B78009F6E18 /* MuscleGroupTarget+CoreDataProperties.swift */; };
 		96752F852C9A2DC2000946F3 /* MovementLogEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96752F842C9A2DC2000946F3 /* MovementLogEditView.swift */; };
 		96752F872C9A2DDA000946F3 /* MovementLogDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96752F862C9A2DDA000946F3 /* MovementLogDetailView.swift */; };
 		96752F892C9A3167000946F3 /* MovementEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96752F882C9A3167000946F3 /* MovementEditView.swift */; };
@@ -103,6 +106,9 @@
 		961642122C9A214500D6D05A /* MetricType+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MetricType+CoreDataClass.swift"; sourceTree = "<group>"; };
 		961642132C9A214500D6D05A /* MetricType+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MetricType+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		9656C1462CB99515009F6E18 /* MuscleGroupSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MuscleGroupSelectionView.swift; sourceTree = "<group>"; };
+		9656C1482CB99AA8009F6E18 /* MuscleGroupTargetsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MuscleGroupTargetsView.swift; sourceTree = "<group>"; };
+		9656C14A2CB99B78009F6E18 /* MuscleGroupTarget+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MuscleGroupTarget+CoreDataClass.swift"; sourceTree = "<group>"; };
+		9656C14B2CB99B78009F6E18 /* MuscleGroupTarget+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MuscleGroupTarget+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		96752F842C9A2DC2000946F3 /* MovementLogEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementLogEditView.swift; sourceTree = "<group>"; };
 		96752F862C9A2DDA000946F3 /* MovementLogDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementLogDetailView.swift; sourceTree = "<group>"; };
 		96752F882C9A3167000946F3 /* MovementEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementEditView.swift; sourceTree = "<group>"; };
@@ -201,6 +207,8 @@
 		96CF52362C96369E0056B52D = {
 			isa = PBXGroup;
 			children = (
+				9656C14A2CB99B78009F6E18 /* MuscleGroupTarget+CoreDataClass.swift */,
+				9656C14B2CB99B78009F6E18 /* MuscleGroupTarget+CoreDataProperties.swift */,
 				96CF52852C963E6A0056B52D /* Frameworks */,
 				9616420C2C98EC2B00D6D05A /* Goals+CoreDataClass.swift */,
 				9616420D2C98EC2B00D6D05A /* Goals+CoreDataProperties.swift */,
@@ -287,6 +295,7 @@
 				967530512CA36923000946F3 /* WorkoutSplitManager.swift */,
 				96CF52882C963EB60056B52D /* WorkoutTracker.xcdatamodeld */,
 				96CF528B2C963F840056B52D /* WorkoutTrackerApp.swift */,
+				9656C1482CB99AA8009F6E18 /* MuscleGroupTargetsView.swift */,
 			);
 			path = WorkoutTracker;
 			sourceTree = "<group>";
@@ -494,10 +503,13 @@
 				967530562CA36A2D000946F3 /* CreateWorkoutSplitView.swift in Sources */,
 				9616420E2C98EC2B00D6D05A /* Goals+CoreDataClass.swift in Sources */,
 				9616420F2C98EC2B00D6D05A /* Goals+CoreDataProperties.swift in Sources */,
+				9656C1492CB99AA8009F6E18 /* MuscleGroupTargetsView.swift in Sources */,
 				96DF69662CA77016000B765B /* SetRowView.swift in Sources */,
 				967530522CA36923000946F3 /* WorkoutSplitManager.swift in Sources */,
 				96E46CAE2CB363FC005D8D1F /* ModelExtensions.swift in Sources */,
 				96CF528A2C963EB60056B52D /* WorkoutTracker.xcdatamodeld in Sources */,
+				9656C14C2CB99B78009F6E18 /* MuscleGroupTarget+CoreDataClass.swift in Sources */,
+				9656C14D2CB99B78009F6E18 /* MuscleGroupTarget+CoreDataProperties.swift in Sources */,
 				96CF528C2C963F840056B52D /* WorkoutTrackerApp.swift in Sources */,
 				96CF52842C963B130056B52D /* SetEntryView.swift in Sources */,
 				9656C1472CB99515009F6E18 /* MuscleGroupSelectionView.swift in Sources */,

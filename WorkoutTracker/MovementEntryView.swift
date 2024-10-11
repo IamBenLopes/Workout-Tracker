@@ -7,7 +7,7 @@ struct MovementEntryView: View {
     @ObservedObject var workout: Workout
     @State private var movementName = ""
     @State private var selectedMovementClass = "Strength"
-    @State private var previousMovements: [Movement] = []
+    @State private var groupedMovements: [String: [Movement]] = [:]
     @State private var showSetEntry = false
     @State private var newMovementLog: MovementLog?
     @State private var showErrorAlert = false
@@ -29,16 +29,20 @@ struct MovementEntryView: View {
             .pickerStyle(SegmentedPickerStyle())
             .padding()
             .onChange(of: selectedMovementClass) { _, _ in
-                loadPreviousMovements()
+                loadGroupedMovements()
             }
 
             List {
-                ForEach(previousMovements, id: \.self) { movement in
-                    Button(action: {
-                        movementName = movement.name ?? ""
-                        createMovementLogAndProceed(movement: movement)
-                    }) {
-                        Text(movement.name ?? "")
+                ForEach(Array(groupedMovements.keys.sorted()), id: \.self) { muscleGroup in
+                    Section(header: Text(muscleGroup)) {
+                        ForEach(groupedMovements[muscleGroup] ?? [], id: \.self) { movement in
+                            Button(action: {
+                                movementName = movement.name ?? ""
+                                createMovementLogAndProceed(movement: movement)
+                            }) {
+                                Text(movement.name ?? "")
+                            }
+                        }
                     }
                 }
             }
@@ -64,7 +68,7 @@ struct MovementEntryView: View {
             .disabled(movementName.isEmpty)
         }
         .onAppear {
-            loadPreviousMovements()
+            loadGroupedMovements()
         }
         .sheet(isPresented: $showSetEntry) {
             if let movementLog = newMovementLog {
@@ -78,14 +82,17 @@ struct MovementEntryView: View {
         })
     }
 
-    func loadPreviousMovements() {
+    func loadGroupedMovements() {
         let request: NSFetchRequest<Movement> = Movement.fetchRequest()
         request.sortDescriptors = [NSSortDescriptor(keyPath: \Movement.name, ascending: true)]
         request.predicate = NSPredicate(format: "movementClass == %@", selectedMovementClass)
         do {
-            previousMovements = try viewContext.fetch(request)
+            let movements = try viewContext.fetch(request)
+            groupedMovements = Dictionary(grouping: movements) { movement in
+                movement.muscleGroups?.first?.name ?? "Uncategorized"
+            }
         } catch {
-            print("Error fetching previous movements: \(error)")
+            print("Error fetching movements: \(error)")
             errorMessage = "Failed to load movements: \(error.localizedDescription)"
             showErrorAlert = true
         }

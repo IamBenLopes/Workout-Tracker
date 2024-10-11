@@ -33,6 +33,23 @@ extension MovementLog {
         formatter.timeStyle = .short
         return formatter.string(from: date ?? Date())
     }
+    
+    static func countSets(for muscleGroup: MuscleGroup, in context: NSManagedObjectContext) -> Int {
+        let calendar = Calendar.current
+        let thirtyDaysAgo = calendar.date(byAdding: .day, value: -30, to: Date())!
+        
+        let fetchRequest: NSFetchRequest<MovementLog> = MovementLog.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "movement.muscleGroups CONTAINS %@ AND date >= %@", muscleGroup, thirtyDaysAgo as NSDate)
+        
+        do {
+            let logs = try context.fetch(fetchRequest)
+            let totalSets = logs.reduce(0) { $0 + ($1.sets?.count ?? 0) }
+            return totalSets
+        } catch {
+            print("Error fetching logs: \(error)")
+            return 0 // Return 0 if there's an error
+        }
+    }
 }
 
 extension SetEntity {
