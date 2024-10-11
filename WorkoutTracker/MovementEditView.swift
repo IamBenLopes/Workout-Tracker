@@ -11,6 +11,8 @@ struct MovementEditView: View {
     @State private var description: String
     @State private var showingImagePicker = false
     @State private var inputImage: UIImage?
+    @State private var showingMuscleGroupSelection = false
+    @State private var selectedMuscleGroup: MuscleGroup?
     
     let movementClasses = ["Strength", "Cardio", "Stretch"]
     
@@ -19,6 +21,7 @@ struct MovementEditView: View {
         _name = State(initialValue: movement.name ?? "")
         _movementClass = State(initialValue: movement.movementClass ?? "Strength")
         _description = State(initialValue: movement.movementDescription ?? "")
+        _selectedMuscleGroup = State(initialValue: movement.muscleGroups?.first)
     }
     
     var body: some View {
@@ -71,6 +74,19 @@ struct MovementEditView: View {
                 }
             }
             
+            Section(header: Text("Muscle Group")) {
+                Button(action: {
+                    showingMuscleGroupSelection = true
+                }) {
+                    HStack {
+                        Text("Select Muscle Group")
+                        Spacer()
+                        Text(selectedMuscleGroup?.name ?? "None")
+                            .foregroundColor(.gray)
+                    }
+                }
+            }
+            
             Section {
                 Button("Save Changes") {
                     saveChanges()
@@ -86,6 +102,11 @@ struct MovementEditView: View {
         .sheet(isPresented: $showingImagePicker, onDismiss: loadImage) {
             ImagePicker(image: $inputImage)
         }
+        .sheet(isPresented: $showingMuscleGroupSelection) {
+            MuscleGroupSelectionView(selectedMuscleGroup: selectedMuscleGroup) { newSelection in
+                selectedMuscleGroup = newSelection
+            }
+        }
     }
     
     private func loadImage() {
@@ -97,6 +118,18 @@ struct MovementEditView: View {
         movement.name = name
         movement.movementClass = movementClass
         movement.movementDescription = description
+        
+        // Update muscle group
+        if let currentMuscleGroup = movement.muscleGroups?.first {
+            currentMuscleGroup.removeFromMovements(movement)
+        }
+        
+        if let newMuscleGroup = selectedMuscleGroup {
+            newMuscleGroup.addToMovements(movement)
+            movement.muscleGroups = [newMuscleGroup]
+        } else {
+            movement.muscleGroups = []
+        }
         
         do {
             try viewContext.save()

@@ -19,6 +19,7 @@
         <attribute name="name" optional="YES" attributeType="String"/>
         <attribute name="type" optional="YES" attributeType="String"/>
         <relationship name="movementLogs" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="MovementLog" inverseName="movement" inverseEntity="MovementLog"/>
+        <relationship name="muscleGroups" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="MuscleGroup" inverseName="movements" inverseEntity="MuscleGroup"/>
         <relationship name="splitDayMovement" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="SplitDayMovement" inverseName="movement" inverseEntity="SplitDayMovement"/>
         <relationship name="splitDays" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SplitDay" inverseName="movements" inverseEntity="SplitDay"/>
     </entity>
@@ -31,6 +32,12 @@
         <relationship name="movement" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Movement" inverseName="movementLogs" inverseEntity="Movement"/>
         <relationship name="sets" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="SetEntity" inverseName="movementLog" inverseEntity="SetEntity"/>
         <relationship name="workout" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Workout" inverseName="movementLogs" inverseEntity="Workout"/>
+    </entity>
+    <entity name="MuscleGroup" representedClassName="MuscleGroup" syncable="YES">
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="muscleGroupDescription" optional="YES" attributeType="String"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <relationship name="movements" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Movement" inverseName="muscleGroups" inverseEntity="Movement"/>
     </entity>
     <entity name="SetEntity" representedClassName="SetEntity" syncable="YES">
         <attribute name="notes" optional="YES" attributeType="String"/>

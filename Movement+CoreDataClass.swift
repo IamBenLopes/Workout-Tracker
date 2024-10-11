@@ -2,7 +2,7 @@
 //  Movement+CoreDataClass.swift
 //  WorkoutTracker
 //
-//  Created by Benjamin Lopes on 9/14/24.
+//  Created by Benjamin Lopes on 10/11/24.
 //
 //
 

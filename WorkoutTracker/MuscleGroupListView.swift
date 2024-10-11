@@ -3,6 +3,8 @@ import CoreData
 
 struct MuscleGroupListView: View {
     @Environment(\.managedObjectContext) private var viewContext
+    @State private var errorMessage: String?
+    
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(keyPath: \MuscleGroup.name, ascending: true)],
         animation: .default)
@@ -12,6 +14,10 @@ struct MuscleGroupListView: View {
     
     var body: some View {
         List {
+            if let errorMessage = errorMessage {
+                Text("Error: \(errorMessage)")
+                    .foregroundColor(.red)
+            }
             ForEach(muscleGroups) { muscleGroup in
                 NavigationLink(destination: MuscleGroupDetailView(muscleGroup: muscleGroup)) {
                     Text(muscleGroup.name ?? "Unnamed Muscle Group")
@@ -30,6 +36,12 @@ struct MuscleGroupListView: View {
         .sheet(isPresented: $showingAddMuscleGroup) {
             AddMuscleGroupView()
         }
+        .onAppear {
+            // Remove the unnecessary fetch call
+            if muscleGroups.isEmpty {
+                errorMessage = "No muscle groups found."
+            }
+        }
     }
     
     private func deleteMuscleGroups(offsets: IndexSet) {
@@ -39,7 +51,7 @@ struct MuscleGroupListView: View {
                 try viewContext.save()
             } catch {
                 let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+                errorMessage = "Unresolved error \(nsError), \(nsError.userInfo)"
             }
         }
     }
@@ -59,8 +71,8 @@ struct MuscleGroupDetailView: View {
             }
             
             Section(header: Text("Associated Movements")) {
-                if let movements = muscleGroup.movements?.allObjects as? [Movement], !movements.isEmpty {
-                    ForEach(movements, id: \.self) { movement in
+                if let movements = muscleGroup.movements, !movements.isEmpty {
+                    ForEach(Array(movements), id: \.self) { movement in
                         Text(movement.name ?? "Unnamed Movement")
                     }
                 } else {
@@ -114,7 +126,7 @@ struct AddMuscleGroupView: View {
             presentationMode.wrappedValue.dismiss()
         } catch {
             let nsError = error as NSError
-            fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+            print("Unresolved error \(nsError), \(nsError.userInfo)")
         }
     }
 }
