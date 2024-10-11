@@ -190,14 +190,9 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		96CF52362C96369E0056B52D = {
+		96BB5B312CB9827D00E57316 /* CoreData */ = {
 			isa = PBXGroup;
 			children = (
-				96A9C3902CA8AD24009CFD4B /* WorkoutSplitDay+CoreDataClass.swift */,
-				96A9C3912CA8AD24009CFD4B /* WorkoutSplitDay+CoreDataProperties.swift */,
-				96DF695D2CA7421C000B765B /* SplitDayMovement+CoreDataClass.swift */,
-				96DF695E2CA7421C000B765B /* SplitDayMovement+CoreDataProperties.swift */,
-				96CF52852C963E6A0056B52D /* Frameworks */,
 				9616420C2C98EC2B00D6D05A /* Goals+CoreDataClass.swift */,
 				9616420D2C98EC2B00D6D05A /* Goals+CoreDataProperties.swift */,
 				961642122C9A214500D6D05A /* MetricType+CoreDataClass.swift */,
@@ -206,18 +201,31 @@
 				96CF52BF2C96BC440056B52D /* Movement+CoreDataProperties.swift */,
 				96CF52C82C96BCAE0056B52D /* MovementLog+CoreDataClass.swift */,
 				96CF52C92C96BCAE0056B52D /* MovementLog+CoreDataProperties.swift */,
-				96CF52402C96369E0056B52D /* Products */,
 				96CF52BA2C96BC440056B52D /* SetEntity+CoreDataClass.swift */,
 				96CF52BB2C96BC440056B52D /* SetEntity+CoreDataProperties.swift */,
 				967530492CA366E6000946F3 /* SplitDay+CoreDataClass.swift */,
 				9675304A2CA366E6000946F3 /* SplitDay+CoreDataProperties.swift */,
-				96CF52572C9636A20056B52D /* Workout TrackerTests */,
-				96CF52612C9636A20056B52D /* Workout TrackerUITests */,
+				96DF695D2CA7421C000B765B /* SplitDayMovement+CoreDataClass.swift */,
+				96DF695E2CA7421C000B765B /* SplitDayMovement+CoreDataProperties.swift */,
 				96CF52BC2C96BC440056B52D /* Workout+CoreDataClass.swift */,
 				96CF52BD2C96BC440056B52D /* Workout+CoreDataProperties.swift */,
 				96A3B5F92C976B4900750ED1 /* Workout+Extensions.swift */,
 				9675304B2CA366E6000946F3 /* WorkoutSplit+CoreDataClass.swift */,
 				9675304C2CA366E6000946F3 /* WorkoutSplit+CoreDataProperties.swift */,
+				96A9C3902CA8AD24009CFD4B /* WorkoutSplitDay+CoreDataClass.swift */,
+				96A9C3912CA8AD24009CFD4B /* WorkoutSplitDay+CoreDataProperties.swift */,
+			);
+			path = CoreData;
+			sourceTree = "<group>";
+		};
+		96CF52362C96369E0056B52D = {
+			isa = PBXGroup;
+			children = (
+				96BB5B312CB9827D00E57316 /* CoreData */,
+				96CF52852C963E6A0056B52D /* Frameworks */,
+				96CF52402C96369E0056B52D /* Products */,
+				96CF52572C9636A20056B52D /* Workout TrackerTests */,
+				96CF52612C9636A20056B52D /* Workout TrackerUITests */,
 				96CF52412C96369E0056B52D /* WorkoutTracker */,
 			);
 			sourceTree = "<group>";
@@ -235,7 +243,43 @@
 		96CF52412C96369E0056B52D /* WorkoutTracker */ = {
 			isa = PBXGroup;
 			children = (
-				96CF52AB2C9662360056B52D /* SwiftFilesFolder */,
+				96CF52772C9638E80056B52D /* BackPainView.swift */,
+				96CF52442C96369E0056B52D /* ContentView.swift */,
+				967530552CA36A2D000946F3 /* CreateWorkoutSplitView.swift */,
+				96A9C3942CAC6C30009CFD4B /* ExportManagerView.swift */,
+				96A9C3962CAC6C8C009CFD4B /* ExportService.swift */,
+				96CF52752C9638D30056B52D /* GoalsView.swift */,
+				96CF52712C9638980056B52D /* HomeView.swift */,
+				96CF52732C9638C10056B52D /* LogsView.swift */,
+				96E46CAD2CB363FC005D8D1F /* ModelExtensions.swift */,
+				967530532CA3693C000946F3 /* MoreView.swift */,
+				96752F882C9A3167000946F3 /* MovementEditView.swift */,
+				96CF52A92C9661F30056B52D /* MovementEntryView.swift */,
+				96A9C38E2CA79CC9009CFD4B /* MovementGraphView.swift */,
+				96E46CA82CB35FAD005D8D1F /* MovementHistoryDetailView.swift */,
+				961642102C98EC5600D6D05A /* MovementHistoryView.swift */,
+				96752F862C9A2DDA000946F3 /* MovementLogDetailView.swift */,
+				96752F842C9A2DC2000946F3 /* MovementLogEditView.swift */,
+				9675309A2CA600D4000946F3 /* MovementSelectionViewForSplitDay.swift */,
+				96CF52A32C965CB00056B52D /* MovementTypeSelectionView.swift */,
+				96CF529F2C965BC70056B52D /* PainCheckView.swift */,
+				96CF527D2C963AA80056B52D /* PainLevelView.swift */,
+				96CF524B2C9636A10056B52D /* Persistence.swift */,
+				96CF529D2C96535E0056B52D /* PostWorkoutView.swift */,
+				96A9C38C2CA79B5C009CFD4B /* ProgressView.swift */,
+				96DF69612CA74514000B765B /* SetEditView.swift */,
+				96CF52832C963B130056B52D /* SetEntryView.swift */,
+				96DF69652CA77016000B765B /* SetRowView.swift */,
+				96DF69632CA74A00000B765B /* SplitWorkoutFlow.swift */,
+				96CF52792C963A530056B52D /* WorkoutDateView.swift */,
+				96CF52992C96481F0056B52D /* WorkoutDetailView.swift */,
+				96752F8A2C9A3181000946F3 /* WorkoutEditView.swift */,
+				96CF52A12C965C210056B52D /* WorkoutFocusView.swift */,
+				96CF52AE2C966D460056B52D /* WorkoutNavigationFlow.swift */,
+				96CF527F2C963AD10056B52D /* WorkoutOverviewView.swift */,
+				967530572CA36A4A000946F3 /* WorkoutSplitDetailView.swift */,
+				967530512CA36923000946F3 /* WorkoutSplitManager.swift */,
+				96CF528B2C963F840056B52D /* WorkoutTrackerApp.swift */,
 				96CF52462C9636A10056B52D /* Assets.xcassets */,
 				96CF52882C963EB60056B52D /* WorkoutTracker.xcdatamodeld */,
 				96CF52482C9636A10056B52D /* Preview Content */,
@@ -274,58 +318,6 @@
 				96CF52862C963E6B0056B52D /* CoreData.framework */,
 			);
 			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		96CF52AB2C9662360056B52D /* SwiftFilesFolder */ = {
-			isa = PBXGroup;
-			children = (
-				96CF52AD2C9662880056B52D /* WorkoutViewsFolder */,
-			);
-			path = SwiftFilesFolder;
-			sourceTree = "<group>";
-		};
-		96CF52AD2C9662880056B52D /* WorkoutViewsFolder */ = {
-			isa = PBXGroup;
-			children = (
-				96CF52772C9638E80056B52D /* BackPainView.swift */,
-				96CF52442C96369E0056B52D /* ContentView.swift */,
-				967530552CA36A2D000946F3 /* CreateWorkoutSplitView.swift */,
-				96A9C3942CAC6C30009CFD4B /* ExportManagerView.swift */,
-				96A9C3962CAC6C8C009CFD4B /* ExportService.swift */,
-				96CF52752C9638D30056B52D /* GoalsView.swift */,
-				96CF52712C9638980056B52D /* HomeView.swift */,
-				96CF52732C9638C10056B52D /* LogsView.swift */,
-				967530532CA3693C000946F3 /* MoreView.swift */,
-				96752F882C9A3167000946F3 /* MovementEditView.swift */,
-				96CF52A92C9661F30056B52D /* MovementEntryView.swift */,
-				96A9C38E2CA79CC9009CFD4B /* MovementGraphView.swift */,
-				96E46CA82CB35FAD005D8D1F /* MovementHistoryDetailView.swift */,
-				961642102C98EC5600D6D05A /* MovementHistoryView.swift */,
-				96752F862C9A2DDA000946F3 /* MovementLogDetailView.swift */,
-				96752F842C9A2DC2000946F3 /* MovementLogEditView.swift */,
-				9675309A2CA600D4000946F3 /* MovementSelectionViewForSplitDay.swift */,
-				96CF52A32C965CB00056B52D /* MovementTypeSelectionView.swift */,
-				96CF529F2C965BC70056B52D /* PainCheckView.swift */,
-				96CF527D2C963AA80056B52D /* PainLevelView.swift */,
-				96CF524B2C9636A10056B52D /* Persistence.swift */,
-				96CF529D2C96535E0056B52D /* PostWorkoutView.swift */,
-				96A9C38C2CA79B5C009CFD4B /* ProgressView.swift */,
-				96DF69612CA74514000B765B /* SetEditView.swift */,
-				96CF52832C963B130056B52D /* SetEntryView.swift */,
-				96DF69652CA77016000B765B /* SetRowView.swift */,
-				96DF69632CA74A00000B765B /* SplitWorkoutFlow.swift */,
-				96CF52792C963A530056B52D /* WorkoutDateView.swift */,
-				96CF52992C96481F0056B52D /* WorkoutDetailView.swift */,
-				96752F8A2C9A3181000946F3 /* WorkoutEditView.swift */,
-				96CF52A12C965C210056B52D /* WorkoutFocusView.swift */,
-				96CF52AE2C966D460056B52D /* WorkoutNavigationFlow.swift */,
-				96CF527F2C963AD10056B52D /* WorkoutOverviewView.swift */,
-				967530572CA36A4A000946F3 /* WorkoutSplitDetailView.swift */,
-				967530512CA36923000946F3 /* WorkoutSplitManager.swift */,
-				96CF528B2C963F840056B52D /* WorkoutTrackerApp.swift */,
-				96E46CAD2CB363FC005D8D1F /* ModelExtensions.swift */,
-			);
-			path = WorkoutViewsFolder;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
