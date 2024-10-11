@@ -55,6 +55,12 @@ struct MoreView: View {
                         Label("Pain Level Tracking", systemImage: "waveform.path.ecg")
                     }
                 }
+
+                Section(header: Text("Muscle Groups")) {
+                    NavigationLink(destination: MuscleGroupListView()) {
+                        Label("Manage Muscle Groups", systemImage: "figure.walk")
+                    }
+                }
                 
                 Section(header: Text("Data Management")) {
                     Button(action: { showingExportManager = true }) {
