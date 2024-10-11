@@ -3,93 +3,74 @@ import CoreData
 
 struct MovementHistoryView: View {
     @Environment(\.managedObjectContext) private var viewContext
-    @FetchRequest(
-        sortDescriptors: [
-            NSSortDescriptor(keyPath: \Movement.movementClass, ascending: true),
-            NSSortDescriptor(keyPath: \Movement.name, ascending: true)
-        ],
-        animation: .default)
-    private var movements: FetchedResults<Movement>
-
+    @ObservedObject var movement: Movement
+    @State private var movementLogs: [MovementLog] = []
+    @State private var showingEditView = false
+    
     var body: some View {
-        NavigationView {
-            List {
-                ForEach(sortedMovementClasses, id: \.self) { movementClass in
-                    Section(header: Text(movementClass)) {
-                        ForEach(movementsByClass[movementClass] ?? [], id: \.objectID) { movement in
-                            NavigationLink(destination: MovementDetailView(movement: movement)) {
-                                Text(movement.name ?? "Unknown Movement")
+        List {
+            Section(header: Text("Movement Details")) {
+                Text("Name: \(movement.name ?? "Unknown")")
+                Text("Class: \(movement.movementClass ?? "Unknown")")
+                if let description = movement.movementDescription, !description.isEmpty {
+                    Text("Description: \(description)")
+                }
+            }
+            
+            Section(header: Text("Movement Logs")) {
+                ForEach(movementLogs, id: \.self) { log in
+                    NavigationLink(destination: MovementLogDetailView(movementLog: log)) {
+                        VStack(alignment: .leading) {
+                            Text(log.formattedDate)
+                            if let workout = log.workout {
+                                Text("Workout: \(workout.displayName)")
+                                    .font(.caption)
                             }
                         }
                     }
                 }
+                .onDelete(perform: deleteMovementLogs)
             }
-            .navigationTitle("Movements History")
         }
-    }
-
-    private var movementsByClass: [String: [Movement]] {
-        Dictionary(grouping: movements) { $0.movementClass ?? "Unknown" }
-    }
-
-    private var sortedMovementClasses: [String] {
-        movementsByClass.keys.sorted()
-    }
-}
-
-struct MovementDetailView: View {
-    @ObservedObject var movement: Movement
-    @State private var showingEditView = false
-    @State private var movementLogs: [MovementLog] = []
-
-    var body: some View {
-        List {
-            Section(header: Text("Movement Details")) {
-                Text(movement.name ?? "Unknown Movement")
-                    .font(.headline)
-                Text("Class: \(movement.movementClass ?? "Unknown")")
-                
-                if let description = movement.movementDescription, !description.isEmpty {
-                    Text("Description:")
-                        .font(.subheadline)
-                    Text(description)
-                }
-                
-                if let imageData = movement.movementPhoto, let uiImage = UIImage(data: imageData) {
-                    Image(uiImage: uiImage)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(height: 200)
-                }
-            }
-            
-            Section(header: Text("History")) {
-                ForEach(movementLogs, id: \.self) { log in
-                    NavigationLink(destination: MovementHistoryDetailView(movementLog: log)) {
-                        Text(log.formattedDate)
-                    }
+        .navigationTitle(movement.name ?? "Movement History")
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button("Edit") {
+                    showingEditView = true
                 }
             }
         }
-        .navigationTitle(movement.name ?? "Movement Details")
-        .navigationBarItems(trailing: Button("Edit") {
-            showingEditView = true
-        })
         .sheet(isPresented: $showingEditView) {
             MovementEditView(movement: movement)
         }
-        .onAppear(perform: loadMovementLogs)
+        .onAppear {
+            fetchMovementLogs()
+        }
     }
     
-    private func loadMovementLogs() {
-        let fetchRequest: NSFetchRequest<MovementLog> = MovementLog.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "movement == %@", movement)
-        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \MovementLog.date, ascending: false)]
+    private func fetchMovementLogs() {
+        let request: NSFetchRequest<MovementLog> = MovementLog.fetchRequest()
+        request.predicate = NSPredicate(format: "movement == %@", movement)
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \MovementLog.date, ascending: false)]
         
         do {
-            movementLogs = try movement.managedObjectContext?.fetch(fetchRequest) ?? []
+            movementLogs = try viewContext.fetch(request)
         } catch {
             print("Error fetching movement logs: \(error)")
+        }
+    }
+    
+    private func deleteMovementLogs(at offsets: IndexSet) {
+        for index in offsets {
+            let logToDelete = movementLogs[index]
+            viewContext.delete(logToDelete)
+        }
+        
+        do {
+            try viewContext.save()
+            fetchMovementLogs()
+        } catch {
+            print("Error deleting movement log: \(error)")
         }
     }
 }

@@ -18,7 +18,7 @@ struct ContentView: View {
                     Label("Progress", systemImage: "figure.walk")
                 }
             
-            MovementHistoryView()
+            MovementsTab()
                 .tabItem {
                     Label("Movements", systemImage: "dumbbell")
                 }

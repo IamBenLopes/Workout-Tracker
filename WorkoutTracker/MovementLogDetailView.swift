@@ -1,12 +1,23 @@
 import SwiftUI
 
 struct MovementLogDetailView: View {
+    @Environment(\.managedObjectContext) private var viewContext
     @ObservedObject var movementLog: MovementLog
+    @State private var logDate: Date
+    
+    init(movementLog: MovementLog) {
+        self.movementLog = movementLog
+        _logDate = State(initialValue: movementLog.date ?? Date())
+    }
     
     var body: some View {
-        List {
+        Form {
             Section(header: Text("Details")) {
-                Text("Date: \(movementLog.formattedDate)")
+                DatePicker("Date", selection: $logDate, displayedComponents: [.date])
+                    .onChange(of: logDate) { oldValue, newValue in
+                        movementLog.date = newValue
+                        saveContext()
+                    }
                 Text("Movement: \(movementLog.movement?.name ?? "Unknown")")
             }
             
@@ -29,5 +40,12 @@ struct MovementLogDetailView: View {
         }
         .navigationTitle("Log Details")
     }
+    
+    private func saveContext() {
+        do {
+            try viewContext.save()
+        } catch {
+            print("Error saving context: \(error)")
+        }
+    }
 }
-
