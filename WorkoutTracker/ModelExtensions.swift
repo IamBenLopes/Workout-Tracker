@@ -1,6 +1,5 @@
 import Foundation
 import CoreData
-import RichTextKit
 
 extension Workout {
     var displayName: String {

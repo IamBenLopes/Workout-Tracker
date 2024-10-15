@@ -76,7 +76,10 @@ struct WorkoutFocusView: View {
             )
         }
         .navigationDestination(isPresented: $navigateToOverview) {
-            WorkoutOverviewView(workout: workout, splitDay: splitDay)
+            WorkoutOverviewView(workout: workout, splitDay: splitDay, isPresented: $navigateToOverview, onFinish: {
+                // Handle finish action here, if needed
+                dismiss()
+            })
                 .environment(\.managedObjectContext, viewContext)
         }
     }

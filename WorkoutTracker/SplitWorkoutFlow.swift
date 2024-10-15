@@ -22,7 +22,9 @@ struct SplitWorkoutFlow: View {
                 }
             case 2:
                 if let workout = workout {
-                    WorkoutOverviewView(workout: workout, splitDay: splitDay)
+                    WorkoutOverviewView(workout: workout, splitDay: splitDay, isPresented: .constant(true), onFinish: {
+                        presentationMode.wrappedValue.dismiss()
+                    })
                 }
             default:
                 Text("Workout Complete!")

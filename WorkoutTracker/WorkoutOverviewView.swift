@@ -3,40 +3,52 @@ import SwiftUI
 struct WorkoutOverviewView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @Environment(\.presentationMode) var presentationMode
+    @Binding var isPresented: Bool
     @ObservedObject var workout: Workout
     @State private var showMovementEntryView = false
     @State private var showFinishAlert = false
-    @State private var navigateToPostWorkout = false
     @State private var postNotes: String
     @State private var prePainLevel: Double
     @State private var postPainLevel: Double
     @State private var workoutFocus: String
+    @State private var workoutName: String
     var isEditing: Bool
     var splitDay: SplitDay?
     @State private var movementsLoaded = false
+    var onFinish: () -> Void
 
-    init(workout: Workout, isEditing: Bool = false, splitDay: SplitDay? = nil) {
+    init(workout: Workout, isEditing: Bool = false, splitDay: SplitDay? = nil, isPresented: Binding<Bool>, onFinish: @escaping () -> Void) {
         self.workout = workout
         self.isEditing = isEditing
         self.splitDay = splitDay
+        _isPresented = isPresented
         _postNotes = State(initialValue: workout.postNotes ?? "")
         _prePainLevel = State(initialValue: Double(workout.prePainLevel))
         _postPainLevel = State(initialValue: Double(workout.postPainLevel))
         _workoutFocus = State(initialValue: workout.workoutFocus ?? "")
+        _workoutName = State(initialValue: workout.workoutName ?? "")
+        self.onFinish = onFinish
     }
 
     var body: some View {
-        // Define sortedMovementLogs outside the Form to simplify the ForEach
         let sortedMovementLogs: [MovementLog] = {
-            // Since 'timestamp' does not exist, sort by movement name
+            let splitDayMovements = splitDay?.splitDayMovements as? Set<SplitDayMovement> ?? []
+            let movementOrder: [Movement: Int] = Dictionary(uniqueKeysWithValues: splitDayMovements.compactMap { splitDayMovement in
+                guard let movement = splitDayMovement.movement else { return nil }
+                return (movement, Int(splitDayMovement.order))
+            })
+            
             return (workout.movementLogs as? Set<MovementLog> ?? [])
-                .sorted {
-                    ($0.movement?.name ?? "") < ($1.movement?.name ?? "")
+                .sorted { 
+                    guard let movement1 = $0.movement, let movement2 = $1.movement else { return false }
+                    return movementOrder[movement1] ?? Int.max < movementOrder[movement2] ?? Int.max
                 }
         }()
 
         return Form {
             Section(header: Text("Workout Details")) {
+                TextField("Workout Name", text: $workoutName)
+                
                 DatePicker("Date", selection: Binding(
                     get: { self.workout.date ?? Date() },
                     set: { self.workout.date = $0 }
@@ -70,13 +82,14 @@ struct WorkoutOverviewView: View {
             }
 
             Section(header: Text("Movements")) {
-                // Use the sortedMovementLogs variable
-                ForEach(sortedMovementLogs) { movementLog in
+                ForEach(sortedMovementLogs, id: \.self) { movementLog in
                     NavigationLink(destination: SetEntryView(movementLog: movementLog)) {
-                        Text(movementLog.movement?.name ?? "Unknown Movement")
+                        Text("\(sortedMovementLogs.firstIndex(of: movementLog)! + 1). \(movementLog.movement?.name ?? "Unknown Movement")")
                     }
                 }
-                .onDelete(perform: deleteMovementLog)
+                .onDelete(perform: { indexSet in
+                    deleteMovementLog(movementLogs: sortedMovementLogs, at: indexSet)
+                })
 
                 Button(action: {
                     self.showMovementEntryView = true
@@ -99,18 +112,10 @@ struct WorkoutOverviewView: View {
                 message: Text(isEditing ? "Are you sure you want to save these changes?" : "Are you sure you want to finish the workout?"),
                 primaryButton: .default(Text("Yes")) {
                     saveChanges()
-                    if isEditing {
-                        presentationMode.wrappedValue.dismiss()
-                    } else {
-                        navigateToPostWorkout = true
-                    }
+                    isPresented = false
                 },
                 secondaryButton: .cancel()
             )
-        }
-        .navigationDestination(isPresented: $navigateToPostWorkout) {
-            PostWorkoutView(workout: workout)
-                .environment(\.managedObjectContext, viewContext)
         }
         .onAppear {
             if let splitDay = splitDay, !movementsLoaded {
@@ -120,11 +125,11 @@ struct WorkoutOverviewView: View {
         }
     }
 
-    private func deleteMovementLog(at offsets: IndexSet) {
-        let movementLogs = Array(workout.movementLogs as? Set<MovementLog> ?? [])
+    private func deleteMovementLog(movementLogs: [MovementLog], at offsets: IndexSet) {
         for index in offsets {
-            let movementLog = movementLogs[index]
-            viewContext.delete(movementLog)
+            let movementLogToDelete = movementLogs[index]
+            workout.removeFromMovementLogs(movementLogToDelete)
+            viewContext.delete(movementLogToDelete)
         }
         do {
             try viewContext.save()
@@ -134,6 +139,7 @@ struct WorkoutOverviewView: View {
     }
 
     private func saveChanges() {
+        workout.workoutName = workoutName
         workout.prePainLevel = Int16(prePainLevel)
         workout.postPainLevel = Int16(postPainLevel)
         workout.workoutFocus = workoutFocus
@@ -188,7 +194,7 @@ struct WorkoutOverviewView_Previews: PreviewProvider {
         // movementLog.timestamp = Date() // Removed because 'timestamp' does not exist
 
         return NavigationStack {
-            WorkoutOverviewView(workout: workout)
+            WorkoutOverviewView(workout: workout, isPresented: .constant(true), onFinish: {})
                 .environment(\.managedObjectContext, context)
         }
     }

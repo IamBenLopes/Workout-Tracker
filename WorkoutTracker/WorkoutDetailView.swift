@@ -29,6 +29,7 @@ struct WorkoutDetailView: View {
 
     private var workoutDetailsSection: some View {
         Section(header: Text("Workout Details")) {
+            Text("Name: \(workout.workoutName ?? "Unnamed Workout")")
             Text("Date: \(formattedDate)")
             Text("Pre-Workout Pain Level: \(workout.prePainLevel)")
             Text("Post-Workout Pain Level: \(workout.postPainLevel)")
@@ -61,17 +62,22 @@ struct WorkoutDetailView: View {
     }
 
     private func deleteMovementLog(at offsets: IndexSet) {
-        for offset in offsets {
-            if offset < workout.movementLogsArray.count {
-                let movementLogToDelete = workout.movementLogsArray[offset]
-                viewContext.delete(movementLogToDelete)
-                workout.removeFromMovementLogs(movementLogToDelete)
+        withAnimation {
+            for index in offsets {
+                if index < workout.movementLogsArray.count {
+                    let movementLogToDelete = workout.movementLogsArray[index]
+                    viewContext.delete(movementLogToDelete)
+                }
             }
-        }
-        do {
-            try viewContext.save()
-        } catch {
-            print("Error deleting movement log: \(error)")
+            
+            // Refresh the workout object to ensure it reflects the latest state
+            viewContext.refresh(workout, mergeChanges: true)
+            
+            do {
+                try viewContext.save()
+            } catch {
+                print("Error deleting movement log: \(error)")
+            }
         }
     }
 }
