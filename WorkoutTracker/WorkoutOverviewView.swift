@@ -16,6 +16,8 @@ struct WorkoutOverviewView: View {
     var splitDay: SplitDay?
     @State private var movementsLoaded = false
     var onFinish: () -> Void
+    @State private var showDismissAlert = false
+    @Environment(\.dismiss) private var dismiss
 
     init(workout: Workout, isEditing: Bool = false, splitDay: SplitDay? = nil, isPresented: Binding<Bool>, onFinish: @escaping () -> Void) {
         self.workout = workout
@@ -99,9 +101,14 @@ struct WorkoutOverviewView: View {
             }
         }
         .navigationTitle(isEditing ? "Edit Workout" : "Today's Workout")
-        .navigationBarItems(trailing: Button(isEditing ? "Save" : "Finish") {
-            self.showFinishAlert = true
-        })
+        .navigationBarItems(
+            leading: Button("Cancel") {
+                showDismissAlert = true
+            },
+            trailing: Button(isEditing ? "Save" : "Finish") {
+                self.showFinishAlert = true
+            }
+        )
         .sheet(isPresented: $showMovementEntryView) {
             MovementEntryView(workout: workout)
                 .environment(\.managedObjectContext, viewContext)
@@ -113,6 +120,7 @@ struct WorkoutOverviewView: View {
                 primaryButton: .default(Text("Yes")) {
                     saveChanges()
                     isPresented = false
+                    onFinish()
                 },
                 secondaryButton: .cancel()
             )
@@ -121,6 +129,21 @@ struct WorkoutOverviewView: View {
             if let splitDay = splitDay, !movementsLoaded {
                 prepopulateMovements(from: splitDay)
                 movementsLoaded = true
+            }
+        }
+        .interactiveDismissDisabled(true)
+        .alert("End Workout?", isPresented: $showDismissAlert) {
+            Button("End Workout", role: .destructive) {
+                isPresented = false
+                onFinish()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Are you sure you want to end this workout? All unsaved progress will be lost.")
+        }
+        .onChange(of: isPresented) { _, newValue in
+            if !newValue {
+                showDismissAlert = true
             }
         }
     }
