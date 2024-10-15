@@ -24,10 +24,25 @@ extension Workout {
     @NSManaged public var workoutFocus: String?
     @NSManaged public var workoutId: UUID?
     @NSManaged public var workoutName: String?
+    @NSManaged public var count: Int32
     @NSManaged public var movementLogs: NSSet?
     @NSManaged public var workoutSplit: WorkoutSplit?
     @NSManaged public var workoutSplitDay: NSSet?
 
+    var sortedMovementLogs: [MovementLog] {
+        let set = movementLogs as? Set<MovementLog> ?? []
+        return set.sorted { $0.logOrder < $1.logOrder }
+    }
+
+    func getNextLogOrder() -> Int16 {
+        let maxLogOrder = sortedMovementLogs.last?.logOrder ?? -1
+        return maxLogOrder + 1
+    }
+
+    func getNextLogCount() -> Int32 {
+        let maxLogCount = (movementLogs as? Set<MovementLog> ?? []).map { $0.logCount }.max() ?? 0
+        return maxLogCount + 1
+    }
 }
 
 // MARK: Generated accessors for movementLogs

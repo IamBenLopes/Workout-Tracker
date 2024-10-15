@@ -82,9 +82,3 @@ struct WorkoutDetailView: View {
     }
 }
 
-extension Workout {
-    var movementLogsArray: [MovementLog] {
-        let set = movementLogs as? Set<MovementLog> ?? []
-        return set.sorted { ($0.date ?? Date()) < ($1.date ?? Date()) }
-    }
-}

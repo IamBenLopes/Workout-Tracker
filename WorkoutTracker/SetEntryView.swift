@@ -1,5 +1,6 @@
 import SwiftUI
 import CoreData
+import UIKit
 
 struct SetEntryView: View {
     @Environment(\.managedObjectContext) private var viewContext
@@ -17,6 +18,12 @@ struct SetEntryView: View {
     @State private var selectedSecondaryMetricUnit = "count"
     @State private var usePrimaryMetric = true
     @State private var useSecondaryMetric = true
+    @State private var currentSetIndex: Int = 0
+    @State private var movementDescription: String = ""
+    @State private var movementImage: UIImage?
+    @State private var showImagePicker = false
+    @State private var isEditingDescription = false
+    @State private var highestSetNumber: Int16 = 1
 
     @FocusState private var focusedField: Field?
 
@@ -32,9 +39,11 @@ struct SetEntryView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
-                Text("\(movementLog.movement?.name ?? "Movement") - Set \(currentSetNumber)")
+                Text(movementLog.movement?.name ?? "Movement")
                     .font(.headline)
-
+                
+                navigationControls
+                
                 metricInputSection
 
                 HStack(spacing: 15) {
@@ -45,9 +54,10 @@ struct SetEntryView: View {
                             .background(Color.blue)
                             .foregroundColor(.white)
                             .cornerRadius(10)
-                            .lineLimit(1) // Prevents text from wrapping
-                            .minimumScaleFactor(0.5) // Allows text to shrink if necessary
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.5)
                     }
+                    .disabled(!hasChanges())
 
                     Button(action: {
                         saveSet()
@@ -59,14 +69,12 @@ struct SetEntryView: View {
                             .background(Color.green)
                             .foregroundColor(.white)
                             .cornerRadius(10)
-                            .lineLimit(1) // Prevents text from wrapping
-                            .minimumScaleFactor(0.5) // Allows text to shrink if necessary
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.5)
                     }
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal)
-
-
 
                 if !previousWorkoutSets.isEmpty {
                     previousWorkoutSection
@@ -80,7 +88,28 @@ struct SetEntryView: View {
         .onAppear {
             fetchCurrentSets()
             fetchPreviousWorkoutSets()
+            loadMovementInfo()
             focusedField = .primaryMetricValue
+        }
+    }
+
+    var navigationControls: some View {
+        HStack {
+            Button(action: previousSet) {
+                Image(systemName: "chevron.left")
+                    .foregroundColor(currentSetIndex > 0 ? .blue : .gray)
+            }
+            .disabled(currentSetIndex == 0)
+            
+            Text("Set \(currentSetNumber)")
+                .font(.headline)
+                .frame(width: 100)
+            
+            Button(action: nextSet) {
+                Image(systemName: "chevron.right")
+                    .foregroundColor(currentSetIndex < highestSetNumber ? .blue : .gray)
+            }
+            .disabled(currentSetIndex >= highestSetNumber)
         }
     }
 
@@ -193,64 +222,138 @@ struct SetEntryView: View {
     }
 
     var movementInfoSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if let description = movementLog.movement?.movementDescription, !description.isEmpty {
-                Text("Movement Description:")
-                    .font(.headline)
-                Text(description)
-                    .padding(.bottom)
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Movement Information")
+                .font(.headline)
+            
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Description:")
+                    .font(.subheadline)
+                    .bold()
+                
+                if isEditingDescription {
+                    TextEditor(text: $movementDescription)
+                        .frame(height: 100)
+                        .overlay(RoundedRectangle(cornerRadius: 5).stroke(Color.gray, lineWidth: 1))
+                } else {
+                    Text(movementDescription.isEmpty ? "No description available" : movementDescription)
+                        .foregroundColor(movementDescription.isEmpty ? .gray : .primary)
+                }
+                
+                Button(isEditingDescription ? "Save Description" : "Edit Description") {
+                    if isEditingDescription {
+                        saveMovementDescription()
+                    }
+                    isEditingDescription.toggle()
+                }
             }
-
-            if let imageData = movementLog.movement?.movementPhoto,
-               let uiImage = UIImage(data: imageData) {
-                Text("Movement Photo:")
-                    .font(.headline)
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(height: 200)
+            
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Photo:")
+                    .font(.subheadline)
+                    .bold()
+                
+                if let image = movementImage {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 200)
+                } else {
+                    Text("No photo available")
+                        .foregroundColor(.gray)
+                }
+                
+                Button("Change Photo") {
+                    showImagePicker = true
+                }
             }
         }
         .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .stroke(Color.secondary, lineWidth: 1)
-        )
-        .padding(.vertical)
+        .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray, lineWidth: 1))
+        .sheet(isPresented: $showImagePicker, onDismiss: saveMovementImage) {
+            ImagePicker(image: $movementImage)
+        }
     }
 
     // Save the current set to Core Data
     private func saveSet() {
-        let newSet = SetEntity(context: viewContext)
-        newSet.setNumber = currentSetNumber
-        newSet.primaryMetricType = usePrimaryMetric ? selectedPrimaryMetricType : "None"
-        newSet.primaryMetricUnit = selectedPrimaryMetricUnit
-        newSet.secondaryMetricType = useSecondaryMetric ? selectedSecondaryMetricType : "None"
-        newSet.secondaryMetricUnit = selectedSecondaryMetricUnit
-        newSet.notes = notes
-        newSet.movementLog = movementLog
-
-        if usePrimaryMetric {
-            newSet.primaryMetricValue = Double(primaryMetricValue) ?? 0
-        }
-
-        if useSecondaryMetric {
-            newSet.secondaryMetricValue = Double(secondaryMetricValue) ?? 0
+        if currentSetIndex < currentSets.count {
+            // Update existing set
+            updateSet(currentSets[currentSetIndex])
+        } else {
+            // Create new set
+            let newSet = SetEntity(context: viewContext)
+            updateSet(newSet)
+            currentSets.append(newSet)
         }
 
         do {
             try viewContext.save()
-            // Clear inputs for the next set
-            resetFields()
-            // Increment set number
-            currentSetNumber += 1
-            // Refresh current sets
-            fetchCurrentSets()
-            // Set focus to primary metric value
+            // Update highest set number if necessary
+            highestSetNumber = max(highestSetNumber, currentSetNumber)
+            
+            // Always move to the next set after saving
+            if currentSetIndex == currentSets.count - 1 {
+                // If we're at the last set, prepare for a new one
+                currentSetIndex = currentSets.count
+                currentSetNumber = highestSetNumber + 1
+                highestSetNumber = currentSetNumber
+                resetFields()
+            } else {
+                // Move to the next existing set
+                currentSetIndex += 1
+                loadSet(at: currentSetIndex)
+            }
+            
             focusedField = .primaryMetricValue
         } catch {
             print("Failed to save set: \(error.localizedDescription)")
         }
+    }
+
+    private func updateSet(_ set: SetEntity) {
+        set.setNumber = Int16(currentSetIndex + 1)
+        set.primaryMetricType = usePrimaryMetric ? selectedPrimaryMetricType : "None"
+        set.primaryMetricUnit = selectedPrimaryMetricUnit
+        set.secondaryMetricType = useSecondaryMetric ? selectedSecondaryMetricType : "None"
+        set.secondaryMetricUnit = selectedSecondaryMetricUnit
+        set.notes = notes
+        set.movementLog = movementLog
+
+        if usePrimaryMetric {
+            set.primaryMetricValue = Double(primaryMetricValue) ?? 0
+        }
+
+        if useSecondaryMetric {
+            set.secondaryMetricValue = Double(secondaryMetricValue) ?? 0
+        }
+    }
+
+    private func nextSet() {
+        if currentSetIndex < currentSets.count - 1 {
+            currentSetIndex += 1
+            loadSet(at: currentSetIndex)
+        } else if currentSetIndex == currentSets.count - 1 {
+            // Prepare for a new set
+            currentSetIndex = currentSets.count
+            currentSetNumber = highestSetNumber + 1
+            highestSetNumber = currentSetNumber
+            resetFields()
+        }
+    }
+
+    private func loadSet(at index: Int) {
+        let set = currentSets[index]
+        currentSetNumber = set.setNumber
+        primaryMetricValue = set.formattedPrimaryMetricValue
+        secondaryMetricValue = set.formattedSecondaryMetricValue
+        notes = set.notes ?? ""
+        selectedPrimaryMetricType = set.primaryMetricType ?? "None"
+        selectedSecondaryMetricType = set.secondaryMetricType ?? "None"
+        selectedPrimaryMetricUnit = set.primaryMetricUnit ?? ""
+        selectedSecondaryMetricUnit = set.secondaryMetricUnit ?? ""
+        usePrimaryMetric = selectedPrimaryMetricType != "None"
+        useSecondaryMetric = selectedSecondaryMetricType != "None"
     }
 
     private func resetFields() {
@@ -267,7 +370,9 @@ struct SetEntryView: View {
 
         do {
             currentSets = try viewContext.fetch(request)
-            currentSetNumber = Int16(currentSets.count + 1)
+            currentSetIndex = currentSets.count
+            currentSetNumber = Int16(currentSetIndex + 1)
+            highestSetNumber = currentSetNumber
         } catch {
             print("Failed to fetch current sets: \(error.localizedDescription)")
         }
@@ -292,6 +397,53 @@ struct SetEntryView: View {
             }
         } catch {
             print("Error fetching previous sets: \(error)")
+        }
+    }
+
+    private func previousSet() {
+        if currentSetIndex > 0 {
+            currentSetIndex -= 1
+            loadSet(at: currentSetIndex)
+        }
+    }
+
+    private func hasChanges() -> Bool {
+        if currentSetIndex < currentSets.count {
+            let currentSet = currentSets[currentSetIndex]
+            return primaryMetricValue != currentSet.formattedPrimaryMetricValue ||
+                   secondaryMetricValue != currentSet.formattedSecondaryMetricValue ||
+                   notes != (currentSet.notes ?? "") ||
+                   selectedPrimaryMetricType != (currentSet.primaryMetricType ?? "") ||
+                   selectedSecondaryMetricType != (currentSet.secondaryMetricType ?? "")
+        }
+        return true // Always allow saving for new sets
+    }
+
+    private func loadMovementInfo() {
+        movementDescription = movementLog.movement?.movementDescription ?? ""
+        if let imageData = movementLog.movement?.movementPhoto,
+           let image = UIImage(data: imageData) {
+            movementImage = image
+        }
+    }
+
+    private func saveMovementDescription() {
+        movementLog.movement?.movementDescription = movementDescription
+        do {
+            try viewContext.save()
+        } catch {
+            print("Failed to save movement description: \(error)")
+        }
+    }
+
+    private func saveMovementImage() {
+        if let imageData = movementImage?.jpegData(compressionQuality: 0.8) {
+            movementLog.movement?.movementPhoto = imageData
+            do {
+                try viewContext.save()
+            } catch {
+                print("Failed to save movement image: \(error)")
+            }
         }
     }
 }

@@ -18,6 +18,11 @@ extension Workout {
             return "Workout on \(dateString)"
         }
     }
+
+    var movementLogsArray: [MovementLog] {
+        let set = movementLogs as? Set<MovementLog> ?? []
+        return set.sorted { $0.logOrder < $1.logOrder }
+    }
 }
 
 extension MovementLog {

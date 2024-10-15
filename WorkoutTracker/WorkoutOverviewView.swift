@@ -149,10 +149,16 @@ struct WorkoutOverviewView: View {
     }
 
     private func deleteMovementLog(movementLogs: [MovementLog], at offsets: IndexSet) {
+        let sortedLogs = movementLogs.sorted { $0.logOrder < $1.logOrder }
         for index in offsets {
-            let movementLogToDelete = movementLogs[index]
+            let movementLogToDelete = sortedLogs[index]
             workout.removeFromMovementLogs(movementLogToDelete)
             viewContext.delete(movementLogToDelete)
+            
+            // Update logOrder for remaining logs
+            for (newIndex, log) in sortedLogs.enumerated() where log.logOrder > movementLogToDelete.logOrder {
+                log.logOrder = Int16(newIndex - 1)
+            }
         }
         do {
             try viewContext.save()
@@ -175,15 +181,14 @@ struct WorkoutOverviewView: View {
     }
 
     private func prepopulateMovements(from splitDay: SplitDay) {
-        // For each movement in the split day, create a MovementLog and associate it with the workout
         let splitDayMovements = splitDay.splitDayMovements as? Set<SplitDayMovement> ?? []
-        for splitDayMovement in splitDayMovements {
+        for (index, splitDayMovement) in splitDayMovements.enumerated() {
             if let movement = splitDayMovement.movement {
                 let movementLog = MovementLog(context: viewContext)
                 movementLog.movementLogId = UUID()
                 movementLog.workout = workout
                 movementLog.movement = movement
-                // movementLog.timestamp = Date() // Removed because 'timestamp' does not exist
+                movementLog.logOrder = Int16(index) // Changed to logOrder
             }
         }
         do {

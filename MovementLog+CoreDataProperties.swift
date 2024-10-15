@@ -2,7 +2,7 @@
 //  MovementLog+CoreDataProperties.swift
 //  WorkoutTracker
 //
-//  Created by Benjamin Lopes on 9/28/24.
+//  Created by Benjamin Lopes on 10/15/24.
 //
 //
 
@@ -21,10 +21,11 @@ extension MovementLog {
     @NSManaged public var notes: String?
     @NSManaged public var reps: String?
     @NSManaged public var weight: String?
+    @NSManaged public var logOrder: Int16
     @NSManaged public var movement: Movement?
     @NSManaged public var sets: NSSet?
     @NSManaged public var workout: Workout?
-
+    @NSManaged public var logCount: Int32
 }
 
 // MARK: Generated accessors for sets
