@@ -20,7 +20,6 @@
 		96752F852C9A2DC2000946F3 /* MovementLogEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96752F842C9A2DC2000946F3 /* MovementLogEditView.swift */; };
 		96752F872C9A2DDA000946F3 /* MovementLogDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96752F862C9A2DDA000946F3 /* MovementLogDetailView.swift */; };
 		96752F892C9A3167000946F3 /* MovementEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96752F882C9A3167000946F3 /* MovementEditView.swift */; };
-		96752F8B2C9A3181000946F3 /* WorkoutEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96752F8A2C9A3181000946F3 /* WorkoutEditView.swift */; };
 		9675304D2CA366E6000946F3 /* SplitDay+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 967530492CA366E6000946F3 /* SplitDay+CoreDataClass.swift */; };
 		9675304E2CA366E6000946F3 /* SplitDay+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9675304A2CA366E6000946F3 /* SplitDay+CoreDataProperties.swift */; };
 		9675304F2CA366E6000946F3 /* WorkoutSplit+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9675304B2CA366E6000946F3 /* WorkoutSplit+CoreDataClass.swift */; };
@@ -74,7 +73,6 @@
 		96CF52CB2C96BCAE0056B52D /* MovementLog+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96CF52C92C96BCAE0056B52D /* MovementLog+CoreDataProperties.swift */; };
 		96DF695F2CA7421C000B765B /* SplitDayMovement+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96DF695D2CA7421C000B765B /* SplitDayMovement+CoreDataClass.swift */; };
 		96DF69602CA7421C000B765B /* SplitDayMovement+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96DF695E2CA7421C000B765B /* SplitDayMovement+CoreDataProperties.swift */; };
-		96DF69622CA74514000B765B /* SetEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96DF69612CA74514000B765B /* SetEditView.swift */; };
 		96DF69662CA77016000B765B /* SetRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96DF69652CA77016000B765B /* SetRowView.swift */; };
 		96E46CAE2CB363FC005D8D1F /* ModelExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96E46CAD2CB363FC005D8D1F /* ModelExtensions.swift */; };
 /* End PBXBuildFile section */
@@ -110,7 +108,6 @@
 		96752F842C9A2DC2000946F3 /* MovementLogEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementLogEditView.swift; sourceTree = "<group>"; };
 		96752F862C9A2DDA000946F3 /* MovementLogDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementLogDetailView.swift; sourceTree = "<group>"; };
 		96752F882C9A3167000946F3 /* MovementEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementEditView.swift; sourceTree = "<group>"; };
-		96752F8A2C9A3181000946F3 /* WorkoutEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutEditView.swift; sourceTree = "<group>"; };
 		967530492CA366E6000946F3 /* SplitDay+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SplitDay+CoreDataClass.swift"; sourceTree = "<group>"; };
 		9675304A2CA366E6000946F3 /* SplitDay+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SplitDay+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		9675304B2CA366E6000946F3 /* WorkoutSplit+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WorkoutSplit+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -167,7 +164,6 @@
 		96CF52C92C96BCAE0056B52D /* MovementLog+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MovementLog+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		96DF695D2CA7421C000B765B /* SplitDayMovement+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SplitDayMovement+CoreDataClass.swift"; sourceTree = "<group>"; };
 		96DF695E2CA7421C000B765B /* SplitDayMovement+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SplitDayMovement+CoreDataProperties.swift"; sourceTree = "<group>"; };
-		96DF69612CA74514000B765B /* SetEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetEditView.swift; sourceTree = "<group>"; };
 		96DF69652CA77016000B765B /* SetRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetRowView.swift; sourceTree = "<group>"; };
 		96E46CAD2CB363FC005D8D1F /* ModelExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelExtensions.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -273,13 +269,11 @@
 				96CF527D2C963AA80056B52D /* PainLevelView.swift */,
 				96CF524B2C9636A10056B52D /* Persistence.swift */,
 				96A9C38C2CA79B5C009CFD4B /* ProgressView.swift */,
-				96DF69612CA74514000B765B /* SetEditView.swift */,
 				96CF52832C963B130056B52D /* SetEntryView.swift */,
 				96DF69652CA77016000B765B /* SetRowView.swift */,
 				968858DC2CBEDF830059C550 /* SplitWorkoutFlow.swift */,
 				96CF52792C963A530056B52D /* WorkoutDateView.swift */,
 				96CF52992C96481F0056B52D /* WorkoutDetailView.swift */,
-				96752F8A2C9A3181000946F3 /* WorkoutEditView.swift */,
 				96CF52A12C965C210056B52D /* WorkoutFocusView.swift */,
 				96CF527F2C963AD10056B52D /* WorkoutOverviewView.swift */,
 				967530572CA36A4A000946F3 /* WorkoutSplitDetailView.swift */,
@@ -482,13 +476,11 @@
 				96CF52CA2C96BCAE0056B52D /* MovementLog+CoreDataClass.swift in Sources */,
 				96A9C3952CAC6C30009CFD4B /* ExportManagerView.swift in Sources */,
 				96CF52CB2C96BCAE0056B52D /* MovementLog+CoreDataProperties.swift in Sources */,
-				96DF69622CA74514000B765B /* SetEditView.swift in Sources */,
 				96A9C3972CAC6C8C009CFD4B /* ExportService.swift in Sources */,
 				96CF527E2C963AA80056B52D /* PainLevelView.swift in Sources */,
 				96CF52742C9638C10056B52D /* LogsView.swift in Sources */,
 				96CF527A2C963A530056B52D /* WorkoutDateView.swift in Sources */,
 				96CF52452C96369E0056B52D /* ContentView.swift in Sources */,
-				96752F8B2C9A3181000946F3 /* WorkoutEditView.swift in Sources */,
 				96A9C38D2CA79B5C009CFD4B /* ProgressView.swift in Sources */,
 				967530562CA36A2D000946F3 /* CreateWorkoutSplitView.swift in Sources */,
 				9616420E2C98EC2B00D6D05A /* Goals+CoreDataClass.swift in Sources */,

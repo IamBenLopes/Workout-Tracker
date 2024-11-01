@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22758" systemVersion="23A344" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23507" systemVersion="24B83" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
     <entity name="Goals" representedClassName="Goals" syncable="YES">
         <attribute name="cardio" optional="YES" attributeType="String"/>
         <attribute name="flexibility" optional="YES" attributeType="String"/>
@@ -50,11 +50,17 @@
         <attribute name="primaryMetricType" optional="YES" attributeType="String"/>
         <attribute name="primaryMetricUnit" optional="YES" attributeType="String"/>
         <attribute name="primaryMetricValue" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="primaryMetricValueLeft" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="primaryMetricValueRight" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="secondaryMetricType" optional="YES" attributeType="String"/>
         <attribute name="secondaryMetricUnit" optional="YES" attributeType="String"/>
         <attribute name="secondaryMetricValue" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="secondaryMetricValueLeft" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="secondaryMetricValueRight" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="setEntityId" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="setNumber" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="usePrimarySplitMetrics" optional="YES" attributeType="Boolean" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="useSecondarySplitMetrics" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <relationship name="movementLog" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="MovementLog" inverseName="sets" inverseEntity="MovementLog"/>
     </entity>
     <entity name="SplitDay" representedClassName="SplitDay" syncable="YES">

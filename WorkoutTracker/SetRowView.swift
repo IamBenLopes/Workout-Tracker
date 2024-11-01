@@ -7,19 +7,31 @@ struct SetRowView: View {
         VStack(alignment: .leading) {
             Text("Set \(set.setNumber)")
                 .font(.headline)
+            
             if let primaryType = set.primaryMetricType, primaryType != "None" {
-                Text("\(primaryType): \(formatMetricValue(set.primaryMetricValue)) \(set.primaryMetricUnit ?? "")")
+                if set.usePrimarySplitMetrics {
+                    Text("\(primaryType) Left: \(formatMetricValue(set.primaryMetricValueLeft)) \(set.primaryMetricUnit ?? "")")
+                    Text("\(primaryType) Right: \(formatMetricValue(set.primaryMetricValueRight)) \(set.primaryMetricUnit ?? "")")
+                } else {
+                    Text("\(primaryType): \(formatMetricValue(set.primaryMetricValue)) \(set.primaryMetricUnit ?? "")")
+                }
             }
+            
             if let secondaryType = set.secondaryMetricType, secondaryType != "None" {
-                Text("\(secondaryType): \(formatMetricValue(set.secondaryMetricValue)) \(set.secondaryMetricUnit ?? "")")
+                if set.useSecondarySplitMetrics {
+                    Text("\(secondaryType) Left: \(formatMetricValue(set.secondaryMetricValueLeft)) \(set.secondaryMetricUnit ?? "")")
+                    Text("\(secondaryType) Right: \(formatMetricValue(set.secondaryMetricValueRight)) \(set.secondaryMetricUnit ?? "")")
+                } else {
+                    Text("\(secondaryType): \(formatMetricValue(set.secondaryMetricValue)) \(set.secondaryMetricUnit ?? "")")
+                }
             }
+            
             if let notes = set.notes, !notes.isEmpty {
                 Text("Notes: \(notes)")
                     .font(.subheadline)
                     .foregroundColor(.gray)
             }
         }
-        .padding(.vertical, 4)
     }
 
     private func formatMetricValue(_ value: Double) -> String {
