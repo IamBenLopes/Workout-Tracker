@@ -12,6 +12,7 @@ struct MovementEntryView: View {
     @State private var newMovementLog: MovementLog?
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
+    @State private var searchText = ""
 
     let movementClasses = ["Strength", "Cardio", "Stretch"]
 
@@ -34,13 +35,20 @@ struct MovementEntryView: View {
 
             List {
                 ForEach(Array(groupedMovements.keys.sorted()), id: \.self) { muscleGroup in
-                    Section(header: Text(muscleGroup)) {
-                        ForEach(groupedMovements[muscleGroup] ?? [], id: \.self) { movement in
-                            Button(action: {
-                                movementName = movement.name ?? ""
-                                createMovementLogAndProceed(movement: movement)
-                            }) {
-                                Text(movement.name ?? "")
+                    let filteredMovements = groupedMovements[muscleGroup]?.filter {
+                        searchText.isEmpty || 
+                        ($0.name?.localizedCaseInsensitiveContains(searchText) ?? false)
+                    } ?? []
+                    
+                    if !filteredMovements.isEmpty {
+                        Section(header: Text(muscleGroup)) {
+                            ForEach(filteredMovements, id: \.self) { movement in
+                                Button(action: {
+                                    movementName = movement.name ?? ""
+                                    createMovementLogAndProceed(movement: movement)
+                                }) {
+                                    Text(movement.name ?? "")
+                                }
                             }
                         }
                     }
@@ -48,9 +56,12 @@ struct MovementEntryView: View {
             }
             .listStyle(PlainListStyle())
 
-            TextField("Or Enter New Movement", text: $movementName)
+            TextField("Search or Enter New Movement", text: $searchText)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .padding()
+                .onChange(of: searchText) { _, newValue in
+                    movementName = newValue
+                }
 
             Button(action: {
                 if !movementName.isEmpty {

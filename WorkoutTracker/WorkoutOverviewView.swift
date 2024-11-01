@@ -33,7 +33,7 @@ struct WorkoutOverviewView: View {
     }
 
     var body: some View {
-        let sortedMovementLogs: [MovementLog] = {
+        let _: [MovementLog] = {
             let splitDayMovements = splitDay?.splitDayMovements as? Set<SplitDayMovement> ?? []
             let movementOrder: [Movement: Int] = Dictionary(uniqueKeysWithValues: splitDayMovements.compactMap { splitDayMovement in
                 guard let movement = splitDayMovement.movement else { return nil }
