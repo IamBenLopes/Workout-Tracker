@@ -42,13 +42,23 @@ struct WorkoutDetailView: View {
 
     private var movementLogsSection: some View {
         Section(header: Text("Movements")) {
-            ForEach(workout.movementLogsArray, id: \.self) { movementLog in
+            ForEach(Array(workout.movementLogsArray.enumerated()), id: \.element) { index, movementLog in
                 NavigationLink(destination: MovementLogEditView(movementLog: movementLog)) {
-                    Text(movementLog.movement?.name ?? "Unknown Movement")
+                    HStack {
+                        Text("\(index + 1).")
+                            .foregroundColor(.secondary)
+                            .frame(width: 30, alignment: .leading)
+                        VStack(alignment: .leading) {
+                            Text(movementLog.movement?.name ?? "Unknown Movement")
+                            Text("Added: \(movementLog.date?.formatted(date: .abbreviated, time: .shortened) ?? "Unknown")")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
                 }
             }
             .onDelete(perform: deleteMovementLog)
-
+            
             Button(action: {
                 showingMovementEntryView = true
             }) {
@@ -63,15 +73,19 @@ struct WorkoutDetailView: View {
 
     private func deleteMovementLog(at offsets: IndexSet) {
         withAnimation {
+            let sortedLogs = workout.sortedMovementLogs
+            
+            // Delete the logs
             for index in offsets {
-                if index < workout.movementLogsArray.count {
-                    let movementLogToDelete = workout.movementLogsArray[index]
+                if index < sortedLogs.count {
+                    let movementLogToDelete = sortedLogs[index]
+                    workout.removeFromMovementLogs(movementLogToDelete)
                     viewContext.delete(movementLogToDelete)
                 }
             }
             
-            // Refresh the workout object to ensure it reflects the latest state
-            viewContext.refresh(workout, mergeChanges: true)
+            // Reorder remaining logs
+            workout.reorderMovementLogs()
             
             do {
                 try viewContext.save()

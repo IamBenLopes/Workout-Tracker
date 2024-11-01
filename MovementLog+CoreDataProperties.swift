@@ -26,6 +26,7 @@ extension MovementLog {
     @NSManaged public var sets: NSSet?
     @NSManaged public var workout: Workout?
     @NSManaged public var logCount: Int32
+
 }
 
 // MARK: Generated accessors for sets

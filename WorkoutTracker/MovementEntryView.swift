@@ -101,15 +101,22 @@ struct MovementEntryView: View {
     func createMovementLogAndProceed(movement: Movement? = nil) {
         do {
             let movement = try getOrCreateMovement(existingMovement: movement)
-
+            
             let movementLog = MovementLog(context: viewContext)
             movementLog.movement = movement
             movementLog.workout = workout
-            movementLog.date = Date()
+            
+            let now = Date()
+            Thread.sleep(forTimeInterval: 0.1)
+            movementLog.date = now
             movementLog.movementLogId = UUID()
-
+            
+            let currentMaxOrder = workout.movementLogsArray.map { $0.logOrder }.max() ?? -1
+            let newOrder = currentMaxOrder + 1
+            movementLog.logOrder = Int16(newOrder)
+            
             workout.addToMovementLogs(movementLog)
-
+            
             try viewContext.save()
             self.newMovementLog = movementLog
             self.showSetEntry = true

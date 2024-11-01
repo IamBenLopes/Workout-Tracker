@@ -84,19 +84,32 @@ struct WorkoutOverviewView: View {
             }
 
             Section(header: Text("Movements")) {
-                ForEach(sortedMovementLogs, id: \.self) { movementLog in
+                ForEach(Array(workout.movementLogsArray.enumerated()), id: \.element) { index, movementLog in
                     NavigationLink(destination: SetEntryView(movementLog: movementLog)) {
-                        Text("\(sortedMovementLogs.firstIndex(of: movementLog)! + 1). \(movementLog.movement?.name ?? "Unknown Movement")")
+                        HStack {
+                            Text("\(index + 1).")
+                                .foregroundColor(.secondary)
+                                .frame(width: 30, alignment: .leading)
+                            VStack(alignment: .leading) {
+                                Text(movementLog.movement?.name ?? "Unknown Movement")
+                                Text("Added: \(movementLog.date?.formatted(date: .abbreviated, time: .shortened) ?? "Unknown")")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
                     }
                 }
                 .onDelete(perform: { indexSet in
-                    deleteMovementLog(movementLogs: sortedMovementLogs, at: indexSet)
+                    deleteMovementLog(movementLogs: workout.movementLogsArray, at: indexSet)
                 })
 
                 Button(action: {
                     self.showMovementEntryView = true
                 }) {
-                    Text("Add Movement")
+                    HStack {
+                        Image(systemName: "plus.circle.fill")
+                        Text("Add Movement")
+                    }
                 }
             }
         }
@@ -149,21 +162,34 @@ struct WorkoutOverviewView: View {
     }
 
     private func deleteMovementLog(movementLogs: [MovementLog], at offsets: IndexSet) {
-        let sortedLogs = movementLogs.sorted { $0.logOrder < $1.logOrder }
-        for index in offsets {
-            let movementLogToDelete = sortedLogs[index]
-            workout.removeFromMovementLogs(movementLogToDelete)
-            viewContext.delete(movementLogToDelete)
+        withAnimation {
+            let sortedLogs = workout.movementLogsArray
             
-            // Update logOrder for remaining logs
-            for (newIndex, log) in sortedLogs.enumerated() where log.logOrder > movementLogToDelete.logOrder {
-                log.logOrder = Int16(newIndex - 1)
+            print("\nBefore deletion - Current logs:")
+            for (index, log) in sortedLogs.enumerated() {
+                print("Index: \(index), Name: \(log.movement?.name ?? "Unknown"), Date: \(log.date?.formatted() ?? "No date")")
             }
-        }
-        do {
-            try viewContext.save()
-        } catch {
-            print("Error deleting movement log: \(error)")
+            
+            // Delete the logs
+            for index in offsets {
+                if index < sortedLogs.count {
+                    let movementLogToDelete = sortedLogs[index]
+                    print("Deleting movement: \(movementLogToDelete.movement?.name ?? "Unknown") at index: \(index)")
+                    workout.removeFromMovementLogs(movementLogToDelete)
+                    viewContext.delete(movementLogToDelete)
+                }
+            }
+            
+            do {
+                try viewContext.save()
+                
+                print("\nAfter deletion - Current logs:")
+                for (index, log) in workout.movementLogsArray.enumerated() {
+                    print("Index: \(index), Name: \(log.movement?.name ?? "Unknown"), Date: \(log.date?.formatted() ?? "No date")")
+                }
+            } catch {
+                print("Error deleting movement log: \(error)")
+            }
         }
     }
 
@@ -227,3 +253,4 @@ struct WorkoutOverviewView_Previews: PreviewProvider {
         }
     }
 }
+

@@ -31,12 +31,27 @@ extension Workout {
 
     var sortedMovementLogs: [MovementLog] {
         let set = movementLogs as? Set<MovementLog> ?? []
-        return set.sorted { $0.logOrder < $1.logOrder }
+        return set.sorted { 
+            // First sort by date
+            if let date1 = $0.date, let date2 = $1.date {
+                if date1 != date2 {
+                    return date1 < date2
+                }
+            }
+            // Then by logOrder if dates are equal
+            return $0.logOrder < $1.logOrder
+        }
     }
-
+    
+    func reorderMovementLogs() {
+        let sorted = sortedMovementLogs
+        for (index, log) in sorted.enumerated() {
+            log.logOrder = Int16(index)
+        }
+    }
+    
     func getNextLogOrder() -> Int16 {
-        let maxLogOrder = sortedMovementLogs.last?.logOrder ?? -1
-        return maxLogOrder + 1
+        return Int16(sortedMovementLogs.count)
     }
 
     func getNextLogCount() -> Int32 {

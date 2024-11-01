@@ -1,0 +1,212 @@
+WorkoutTrackerApp initializing
+ContentView appeared
+ManagedObjectContext: <NSManagedObjectContext: 0x30265cb60>
+UICalendarView's height is smaller than it can render its content in; defaulting to the minimum height.
+UICalendarView's height is smaller than it can render its content in; defaulting to the minimum height.
+Picker: the selection "Triceps" is invalid and does not have an associated tag, this will give undefined results.
+Picker: the selection "Triceps" is invalid and does not have an associated tag, this will give undefined results.
+
+Current movement logs order:
+Name: Cable shrugs, Order: 0, Date: 10/31/2024, 2:06 PM
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+
+Current movement logs order:
+Name: Sissy Squats, Order: 0, Date: 10/31/2024, 2:06 PM
+Name: Cable shrugs, Order: 1, Date: 10/31/2024, 2:06 PM
+Name: Aaa (test), Order: 2, Date: 10/31/2024, 2:06 PM
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+
+Current movement logs order:
+Name: Push ups - Normal, Order: 0, Date: 10/31/2024, 2:07 PM
+Name: Cable shrugs, Order: 1, Date: 10/31/2024, 2:06 PM
+Name: Aaa (test), Order: 2, Date: 10/31/2024, 2:06 PM
+Name: Sissy Squats, Order: 3, Date: 10/31/2024, 2:06 PM
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+
+Current movement logs order:
+Name: Cat cow, Order: 0, Date: 10/31/2024, 2:07 PM
+Name: Cable shrugs, Order: 1, Date: 10/31/2024, 2:06 PM
+Name: Aaa (test), Order: 2, Date: 10/31/2024, 2:06 PM
+Name: Sissy Squats, Order: 3, Date: 10/31/2024, 2:06 PM
+Name: Push ups - Normal, Order: 4, Date: 10/31/2024, 2:07 PM
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+
+Current movement logs order:
+Name: Side delts cable , Order: 0, Date: 10/31/2024, 2:07 PM
+Name: Cable shrugs, Order: 1, Date: 10/31/2024, 2:06 PM
+Name: Aaa (test), Order: 2, Date: 10/31/2024, 2:06 PM
+Name: Sissy Squats, Order: 3, Date: 10/31/2024, 2:06 PM
+Name: Push ups - Normal, Order: 4, Date: 10/31/2024, 2:07 PM
+Name: Cat cow, Order: 5, Date: 10/31/2024, 2:07 PM
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+Can't find or decode reasons
+Failed to get or decode unavailable reasons
+
+Current movement logs order:
+Name: Cable shrugs, Order: 1, Date: 10/31/2024, 2:06 PM
+Name: Aaa (test), Order: 2, Date: 10/31/2024, 2:06 PM
+Name: Sissy Squats, Order: 3, Date: 10/31/2024, 2:06 PM
+Name: Push ups - Normal, Order: 4, Date: 10/31/2024, 2:07 PM
+Name: Cat cow, Order: 5, Date: 10/31/2024, 2:07 PM
+Name: Side delts cable , Order: 6, Date: 10/31/2024, 2:07 PM
+
+Before deletion - Current logs:
+Index: 0, Name: Cable shrugs, Date: 10/31/2024, 2:06 PM
+Index: 1, Name: Aaa (test), Date: 10/31/2024, 2:06 PM
+Index: 2, Name: Sissy Squats, Date: 10/31/2024, 2:06 PM
+Index: 3, Name: Push ups - Normal, Date: 10/31/2024, 2:07 PM
+Index: 4, Name: Cat cow, Date: 10/31/2024, 2:07 PM
+Index: 5, Name: Side delts cable , Date: 10/31/2024, 2:07 PM
+Deleting movement: Sissy Squats at index: 2
+
+Current movement logs order:
+Name: Cable shrugs, Order: 1, Date: 10/31/2024, 2:06 PM
+Name: Aaa (test), Order: 2, Date: 10/31/2024, 2:06 PM
+Name: Push ups - Normal, Order: 4, Date: 10/31/2024, 2:07 PM
+Name: Cat cow, Order: 5, Date: 10/31/2024, 2:07 PM
+Name: Side delts cable , Order: 6, Date: 10/31/2024, 2:07 PM
+
+Reordering remaining logs:
+Set Cable shrugs to order: 0
+Set Aaa (test) to order: 1
+Set Push ups - Normal to order: 2
+Set Cat cow to order: 3
+Set Side delts cable  to order: 4
+
+After deletion and reordering:
+
+Current movement logs order:
+Name: Cable shrugs, Order: 0, Date: 10/31/2024, 2:06 PM
+Name: Aaa (test), Order: 1, Date: 10/31/2024, 2:06 PM
+Name: Push ups - Normal, Order: 2, Date: 10/31/2024, 2:07 PM
+Name: Cat cow, Order: 3, Date: 10/31/2024, 2:07 PM
+Name: Side delts cable , Order: 4, Date: 10/31/2024, 2:07 PM
+Index: 0, Name: Cable shrugs, Date: 10/31/2024, 2:06 PM
+Index: 1, Name: Aaa (test), Date: 10/31/2024, 2:06 PM
+Index: 2, Name: Push ups - Normal, Date: 10/31/2024, 2:07 PM
+Index: 3, Name: Cat cow, Date: 10/31/2024, 2:07 PM
+Index: 4, Name: Side delts cable , Date: 10/31/2024, 2:07 PM
+
+Current movement logs order:
+Name: Cable shrugs, Order: 0, Date: 10/31/2024, 2:06 PM
+Name: Aaa (test), Order: 1, Date: 10/31/2024, 2:06 PM
+Name: Push ups - Normal, Order: 2, Date: 10/31/2024, 2:07 PM
+Name: Cat cow, Order: 3, Date: 10/31/2024, 2:07 PM
+Name: Side delts cable , Order: 4, Date: 10/31/2024, 2:07 PM
+
+Before deletion - Current logs:
+Index: 0, Name: Cable shrugs, Date: 10/31/2024, 2:06 PM
+Index: 1, Name: Aaa (test), Date: 10/31/2024, 2:06 PM
+Index: 2, Name: Push ups - Normal, Date: 10/31/2024, 2:07 PM
+Index: 3, Name: Cat cow, Date: 10/31/2024, 2:07 PM
+Index: 4, Name: Side delts cable , Date: 10/31/2024, 2:07 PM
+Deleting movement: Side delts cable  at index: 4
+
+Current movement logs order:
+Name: Cable shrugs, Order: 0, Date: 10/31/2024, 2:06 PM
+Name: Aaa (test), Order: 1, Date: 10/31/2024, 2:06 PM
+Name: Push ups - Normal, Order: 2, Date: 10/31/2024, 2:07 PM
+Name: Cat cow, Order: 3, Date: 10/31/2024, 2:07 PM
+
+Reordering remaining logs:
+Set Cable shrugs to order: 0
+Set Aaa (test) to order: 1
+Set Push ups - Normal to order: 2
+Set Cat cow to order: 3
+
+After deletion and reordering:
+
+Current movement logs order:
+Name: Cable shrugs, Order: 0, Date: 10/31/2024, 2:06 PM
+Name: Aaa (test), Order: 1, Date: 10/31/2024, 2:06 PM
+Name: Push ups - Normal, Order: 2, Date: 10/31/2024, 2:07 PM
+Name: Cat cow, Order: 3, Date: 10/31/2024, 2:07 PM
+Index: 0, Name: Cable shrugs, Date: 10/31/2024, 2:06 PM
+Index: 1, Name: Aaa (test), Date: 10/31/2024, 2:06 PM
+Index: 2, Name: Push ups - Normal, Date: 10/31/2024, 2:07 PM
+Index: 3, Name: Cat cow, Date: 10/31/2024, 2:07 PM

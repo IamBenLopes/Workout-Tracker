@@ -16,6 +16,4 @@ extension Workout: Identifiable {
     var totalMovements: Int {
         return movementLogs?.count ?? 0
     }
-
-    // You can add more helper methods or computed properties here as needed
 }
