@@ -387,10 +387,20 @@ struct SetEntryView: View {
                     Text("Set \(set.setNumber)")
                         .font(.subheadline)
                     if let primary = set.primaryMetricType, primary != "None" {
-                        Text("\(primary): \(set.formattedPrimaryMetricValue) \(set.primaryMetricUnit ?? "")")
+                        if set.usePrimarySplitMetrics {
+                            Text("\(primary) Left: \(Int(set.primaryMetricValueLeft)) \(set.primaryMetricUnit ?? "")")
+                            Text("\(primary) Right: \(Int(set.primaryMetricValueRight)) \(set.primaryMetricUnit ?? "")")
+                        } else {
+                            Text("\(primary): \(Int(Double(set.formattedPrimaryMetricValue) ?? 0)) \(set.primaryMetricUnit ?? "")")
+                        }
                     }
                     if let secondary = set.secondaryMetricType, secondary != "None" {
-                        Text("\(secondary): \(set.formattedSecondaryMetricValue) \(set.secondaryMetricUnit ?? "")")
+                        if set.useSecondarySplitMetrics {
+                            Text("\(secondary) Left: \(Int(set.secondaryMetricValueLeft)) \(set.secondaryMetricUnit ?? "")")
+                            Text("\(secondary) Right: \(Int(set.secondaryMetricValueRight)) \(set.secondaryMetricUnit ?? "")")
+                        } else {
+                            Text("\(secondary): \(Int(Double(set.formattedSecondaryMetricValue) ?? 0)) \(set.secondaryMetricUnit ?? "")")
+                        }
                     }
                     if let notes = set.notes, !notes.isEmpty {
                         Text("Notes: \(notes)")
@@ -532,7 +542,17 @@ struct SetEntryView: View {
         set.useSecondarySplitMetrics = useSecondarySplitMetrics
         
         if usePrimaryMetric {
-            if usePrimarySplitMetrics {
+            if selectedPrimaryMetricType == "Time" {
+                // Convert picker values to the appropriate time format
+                let totalSeconds = selectedMinutes * 60 + selectedSeconds
+                if totalSeconds < 60 {
+                    set.primaryMetricValue = Double(totalSeconds)
+                    set.primaryMetricUnit = "seconds"
+                } else {
+                    set.primaryMetricValue = Double(totalSeconds) / 60.0
+                    set.primaryMetricUnit = "minutes"
+                }
+            } else if usePrimarySplitMetrics {
                 print("Saving Primary Split Values - Left: \(primaryMetricValueLeft), Right: \(primaryMetricValueRight)")
                 set.primaryMetricValueLeft = Double(primaryMetricValueLeft) ?? 0
                 set.primaryMetricValueRight = Double(primaryMetricValueRight) ?? 0
@@ -890,6 +910,22 @@ struct SetEntryView: View {
             print("Failed to play timer end sound: \(error)")
             // Fallback to system sound
             AudioServicesPlaySystemSound(1005)
+        }
+    }
+
+    private func formatPreviousWorkoutSet(_ set: SetEntity) -> String {
+        if set.useSecondarySplitMetrics {
+            return "\(set.secondaryMetricValueLeft)/\(set.secondaryMetricValueRight)"
+        } else {
+            return set.formattedSecondaryMetricValue
+        }
+    }
+
+    private func formatPreviousWorkoutPrimaryMetric(_ set: SetEntity) -> String {
+        if set.usePrimarySplitMetrics {
+            return "\(set.primaryMetricValueLeft)/\(set.primaryMetricValueRight)"
+        } else {
+            return set.formattedPrimaryMetricValue
         }
     }
 }

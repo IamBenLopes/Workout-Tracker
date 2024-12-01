@@ -26,10 +26,20 @@ struct MovementLogDetailView: View {
                     VStack(alignment: .leading) {
                         Text("Set \(set.setNumber)")
                         if let primaryType = set.primaryMetricType, primaryType != "None" {
-                            Text("\(primaryType): \(set.formattedPrimaryMetricValue) \(set.primaryMetricUnit ?? "")")
+                            if set.usePrimarySplitMetrics {
+                                Text("\(primaryType) Left: \(Int(set.primaryMetricValueLeft)) \(set.primaryMetricUnit ?? "")")
+                                Text("\(primaryType) Right: \(Int(set.primaryMetricValueRight)) \(set.primaryMetricUnit ?? "")")
+                            } else {
+                                Text("\(primaryType): \(Int(Double(set.formattedPrimaryMetricValue) ?? 0)) \(set.primaryMetricUnit ?? "")")
+                            }
                         }
                         if let secondaryType = set.secondaryMetricType, secondaryType != "None" {
-                            Text("\(secondaryType): \(set.formattedSecondaryMetricValue) \(set.secondaryMetricUnit ?? "")")
+                            if set.useSecondarySplitMetrics {
+                                Text("\(secondaryType) Left: \(Int(set.secondaryMetricValueLeft)) \(set.secondaryMetricUnit ?? "")")
+                                Text("\(secondaryType) Right: \(Int(set.secondaryMetricValueRight)) \(set.secondaryMetricUnit ?? "")")
+                            } else {
+                                Text("\(secondaryType): \(Int(Double(set.formattedSecondaryMetricValue) ?? 0)) \(set.secondaryMetricUnit ?? "")")
+                            }
                         }
                         if let notes = set.notes, !notes.isEmpty {
                             Text("Notes: \(notes)")

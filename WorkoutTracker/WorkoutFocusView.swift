@@ -6,15 +6,17 @@ struct WorkoutFocusView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var workout: Workout
     let focusAreas = ["Chest", "Back", "Shoulders", "Biceps", "Triceps", "Legs", "Cardio"]
-    @State private var selectedFocusAreas: [String] = []
+    @State private var selectedFocusAreas: Set<String> = []
     @State private var navigateToOverview = false
     @State private var showCancelAlert = false
     var splitDay: SplitDay?
 
-    // Custom initializer to accept splitDay
     init(workout: Workout, splitDay: SplitDay? = nil) {
         self._workout = ObservedObject(initialValue: workout)
         self.splitDay = splitDay
+        if let existingFocus = workout.workoutFocus {
+            self._selectedFocusAreas = State(initialValue: Set(existingFocus.components(separatedBy: ", ")))
+        }
     }
 
     var body: some View {
@@ -25,11 +27,14 @@ struct WorkoutFocusView: View {
 
             List {
                 ForEach(focusAreas, id: \.self) { area in
-                    MultipleSelectionRow(title: area, isSelected: selectedFocusAreas.contains(area)) {
+                    MultipleSelectionRow(
+                        title: area,
+                        isSelected: selectedFocusAreas.contains(area)
+                    ) {
                         if selectedFocusAreas.contains(area) {
-                            selectedFocusAreas.removeAll(where: { $0 == area })
+                            selectedFocusAreas.remove(area)
                         } else {
-                            selectedFocusAreas.append(area)
+                            selectedFocusAreas.insert(area)
                         }
                     }
                 }
@@ -37,7 +42,8 @@ struct WorkoutFocusView: View {
             .listStyle(PlainListStyle())
 
             Button(action: {
-                workout.workoutFocus = selectedFocusAreas.joined(separator: ", ")
+                let sortedAreas = selectedFocusAreas.sorted()
+                workout.workoutFocus = sortedAreas.joined(separator: ", ")
                 do {
                     try viewContext.save()
                     navigateToOverview = true
@@ -77,15 +83,13 @@ struct WorkoutFocusView: View {
         }
         .navigationDestination(isPresented: $navigateToOverview) {
             WorkoutOverviewView(workout: workout, splitDay: splitDay, isPresented: $navigateToOverview, onFinish: {
-                // Handle finish action here, if needed
                 dismiss()
             })
-                .environment(\.managedObjectContext, viewContext)
+            .environment(\.managedObjectContext, viewContext)
         }
     }
 }
 
-// Include the MultipleSelectionRow struct
 struct MultipleSelectionRow: View {
     var title: String
     var isSelected: Bool

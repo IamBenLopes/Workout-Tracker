@@ -15,6 +15,14 @@ struct MovementHistoryView: View {
                 if let description = movement.movementDescription, !description.isEmpty {
                     Text("Description: \(description)")
                 }
+                
+                NavigationLink(destination: MovementGraphView(movement: movement)) {
+                    HStack {
+                        Text("View Progress")
+                        Spacer()
+                        Image(systemName: "chart.xyaxis.line")
+                    }
+                }
             }
             
             Section(header: Text("Movement Logs")) {
