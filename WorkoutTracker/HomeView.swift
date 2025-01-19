@@ -18,38 +18,22 @@ struct HomeView: View {
     var body: some View {
         NavigationView {
             ScrollView {
-                VStack(spacing: 20) {
-                    Text("Workout Tracker")
-                        .font(.largeTitle)
-                        .padding(.top, 40)
-
+                VStack(spacing: 24) {
                     if let activeSplit = splitManager.getActiveWorkoutSplit() {
                         activeSplitView(activeSplit)
                     } else {
-                        Text("No active workout split")
-                            .font(.headline)
-                            .foregroundColor(.gray)
-                            .padding()
+                        EmptyStateView()
                     }
 
-                    Button(action: {
+                    LogWorkoutButton(action: {
                         showWorkoutFlow = true
-                    }) {
-                        Text("Log New Workout")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.blue)
-                            .cornerRadius(10)
-                    }
+                    })
                     .padding(.horizontal)
-
-                    Text("Your Progress Graphs Will Appear Here")
-                        .padding()
                 }
+                .padding(.vertical)
             }
-            .navigationTitle("Home")
+            .navigationTitle("Workout Tracker")
+            .background(Color(.systemGroupedBackground))
             .sheet(isPresented: $showWorkoutFlow) {
                 NavigationStack {
                     WorkoutDateView(splitManager: splitManager)
@@ -82,45 +66,95 @@ struct HomeView: View {
     
     @ViewBuilder
     func activeSplitView(_ split: WorkoutSplit) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 16) {
             Text(split.splitName ?? "Unnamed Split")
-                .font(.title2)
-                .fontWeight(.bold)
+                .font(.title.bold())
             
             ForEach(split.sortedSplitDays, id: \.self) { splitDay in
-                HStack {
-                    Text(splitDay.dayName ?? "Day \(splitDay.dayNumber)")
-                        .font(.headline)
-                    Spacer()
-                    if splitDay.isCompleted {
-                        Text("Completed 💪")
-                            .foregroundColor(.green)
-                    } else {
-                        Button("Start") {
-                            selectedSplitDay = splitDay
-                        }
-                        .foregroundColor(.blue)
-                    }
+                SplitDayRow(splitDay: splitDay) {
+                    selectedSplitDay = splitDay
                 }
-                .padding(.vertical, 4)
             }
             
-            let remainingDays = split.remainingDaysThisWeek
-            Text("\(remainingDays) more day\(remainingDays == 1 ? "" : "s") to complete split this week")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .padding(.top, 5)
-            
-            Button("Reset Weekly Progress") {
-                showResetAlert = true
+            VStack(alignment: .leading, spacing: 8) {
+                Text("\(split.remainingDaysThisWeek) more day\(split.remainingDaysThisWeek == 1 ? "" : "s") to complete this week")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                
+                Button(action: { showResetAlert = true }) {
+                    Label("Reset Weekly Progress", systemImage: "arrow.counterclockwise")
+                        .font(.subheadline)
+                }
+                .buttonStyle(.borderless)
             }
-            .font(.footnote)
-            .foregroundColor(.blue)
-            .padding(.top, 5)
+            .padding(.top, 8)
         }
         .padding()
-        .background(Color.gray.opacity(0.1))
-        .cornerRadius(10)
+        .background(Color(.secondarySystemGroupedBackground))
+        .cornerRadius(16)
+        .shadow(radius: 2, y: 1)
         .padding(.horizontal)
+    }
+}
+
+struct EmptyStateView: View {
+    var body: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "dumbbell.fill")
+                .font(.system(size: 48))
+                .foregroundColor(.secondary)
+            Text("No Active Workout Split")
+                .font(.headline)
+            Text("Start by creating a new workout split")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+        }
+        .padding()
+        .frame(maxWidth: .infinity)
+        .background(Color(.secondarySystemGroupedBackground))
+        .cornerRadius(16)
+        .padding(.horizontal)
+    }
+}
+
+struct LogWorkoutButton: View {
+    var action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            Label("Log New Workout", systemImage: "plus.circle.fill")
+                .font(.headline)
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .frame(height: 54)
+                .background(Color.accentColor)
+                .cornerRadius(16)
+        }
+    }
+}
+
+struct SplitDayRow: View {
+    let splitDay: SplitDay
+    let onTap: () -> Void
+    
+    var body: some View {
+        HStack {
+            Text(splitDay.dayName ?? "Day \(splitDay.dayNumber)")
+                .font(.headline)
+            Spacer()
+            if splitDay.isCompleted {
+                Label("Completed", systemImage: "checkmark.circle.fill")
+                    .foregroundColor(.green)
+            } else {
+                Button(action: onTap) {
+                    Text("Start")
+                        .frame(minWidth: 80, minHeight: 32)
+                        .background(Color.accentColor.opacity(0.1))
+                        .cornerRadius(8)
+                }
+                .foregroundColor(.accentColor)
+            }
+        }
+        .padding(.vertical, 8)
     }
 }

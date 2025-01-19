@@ -1,5 +1,6 @@
 import SwiftUI
 import CoreData
+import UIKit
 
 struct MovementEditView: View {
     @Environment(\.managedObjectContext) private var viewContext
@@ -171,8 +172,6 @@ enum TextStyle {
     case italic
     case underline
 }
-
-// Keep the existing ImagePicker struct
 
 struct ImagePicker: UIViewControllerRepresentable {
     @Binding var image: UIImage?

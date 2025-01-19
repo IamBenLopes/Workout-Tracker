@@ -5,7 +5,7 @@ struct MovementEntryView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var workout: Workout
-    @State private var movementName = ""
+    var onFinish: (() -> Void)?
     @State private var selectedMovementClass = "Strength"
     @State private var groupedMovements: [String: [Movement]] = [:]
     @State private var showSetEntry = false
@@ -13,14 +13,46 @@ struct MovementEntryView: View {
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
     @State private var searchText = ""
+    @State private var showNewMovementView = false
 
     let movementClasses = ["Strength", "Cardio", "Stretch"]
 
     var body: some View {
-        VStack {
+        VStack(spacing: 16) {
             Text("Add Movement")
-                .font(.headline)
+                .font(.title2)
+                .fontWeight(.bold)
+                .padding(.top)
+                .onAppear {
+                    print("DEBUG: MovementEntryView - View appeared")
+                    print("DEBUG: MovementEntryView - Workout date: \(workout.date?.description ?? "nil")")
+                }
+
+            // Search bar
+            HStack {
+                Image(systemName: "magnifyingglass")
+                    .foregroundColor(.gray)
+                TextField("Search movements...", text: $searchText)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .autocapitalization(.none)
+            }
+            .padding(.horizontal)
+
+            // New Movement Button
+            Button(action: {
+                showNewMovementView = true
+            }) {
+                HStack {
+                    Image(systemName: "plus.circle.fill")
+                    Text("New Movement")
+                }
+                .frame(maxWidth: .infinity)
                 .padding()
+                .background(Color.blue)
+                .foregroundColor(.white)
+                .cornerRadius(10)
+            }
+            .padding(.horizontal)
 
             Picker("Movement Class", selection: $selectedMovementClass) {
                 ForEach(movementClasses, id: \.self) {
@@ -28,7 +60,7 @@ struct MovementEntryView: View {
                 }
             }
             .pickerStyle(SegmentedPickerStyle())
-            .padding()
+            .padding(.horizontal)
             .onChange(of: selectedMovementClass) { _, _ in
                 loadGroupedMovements()
             }
@@ -44,7 +76,6 @@ struct MovementEntryView: View {
                         Section(header: Text(muscleGroup)) {
                             ForEach(filteredMovements, id: \.self) { movement in
                                 Button(action: {
-                                    movementName = movement.name ?? ""
                                     createMovementLogAndProceed(movement: movement)
                                 }) {
                                     Text(movement.name ?? "")
@@ -55,35 +86,18 @@ struct MovementEntryView: View {
                 }
             }
             .listStyle(PlainListStyle())
-
-            TextField("Search or Enter New Movement", text: $searchText)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .padding()
-                .onChange(of: searchText) { _, newValue in
-                    movementName = newValue
-                }
-
-            Button(action: {
-                if !movementName.isEmpty {
-                    createMovementLogAndProceed()
-                }
-            }) {
-                Text("Next")
-                    .foregroundColor(.white)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(movementName.isEmpty ? Color.gray.opacity(0.5) : Color.blue)
-                    .cornerRadius(10)
-            }
-            .padding()
-            .disabled(movementName.isEmpty)
         }
         .onAppear {
             loadGroupedMovements()
         }
         .sheet(isPresented: $showSetEntry) {
             if let movementLog = newMovementLog {
-                SetEntryView(movementLog: movementLog)
+                SetEntryView(movementLog: movementLog, onFinish: {
+                    print("DEBUG: MovementEntryView - onFinish called from SetEntryView")
+                    showSetEntry = false
+                    onFinish?()
+                })
+                    .environment(\.managedObjectContext, viewContext)
             }
         }
         .alert("Error", isPresented: $showErrorAlert, actions: {
@@ -91,6 +105,13 @@ struct MovementEntryView: View {
         }, message: {
             Text(errorMessage)
         })
+        .sheet(isPresented: $showNewMovementView) {
+            NewMovementView(workout: workout, onFinish: {
+                print("DEBUG: MovementEntryView - onFinish called from NewMovementView")
+                dismiss()
+            })
+                .environment(\.managedObjectContext, viewContext)
+        }
     }
 
     func loadGroupedMovements() {
@@ -109,10 +130,8 @@ struct MovementEntryView: View {
         }
     }
 
-    func createMovementLogAndProceed(movement: Movement? = nil) {
+    func createMovementLogAndProceed(movement: Movement) {
         do {
-            let movement = try getOrCreateMovement(existingMovement: movement)
-            
             let movementLog = MovementLog(context: viewContext)
             movementLog.movement = movement
             movementLog.workout = workout
@@ -135,26 +154,6 @@ struct MovementEntryView: View {
             print("Error saving movement log: \(error)")
             errorMessage = "Failed to create movement log: \(error.localizedDescription)"
             showErrorAlert = true
-        }
-    }
-
-    private func getOrCreateMovement(existingMovement: Movement?) throws -> Movement {
-        if let movement = existingMovement {
-            return movement
-        }
-
-        let fetchRequest: NSFetchRequest<Movement> = Movement.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "name == %@ AND movementClass == %@", movementName, selectedMovementClass)
-        fetchRequest.fetchLimit = 1
-        
-        if let existingMovement = try viewContext.fetch(fetchRequest).first {
-            return existingMovement
-        } else {
-            let newMovement = Movement(context: viewContext)
-            newMovement.name = movementName
-            newMovement.movementClass = selectedMovementClass
-            newMovement.movementId = UUID()
-            return newMovement
         }
     }
 }

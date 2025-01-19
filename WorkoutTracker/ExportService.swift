@@ -332,12 +332,23 @@ class ExportService {
     }
     
     private func fetchWorkouts(startDate: Date, endDate: Date) -> [Workout] {
+        let calendar = Calendar.current
+        
+        // Create start of day for startDate and end of day for endDate
+        let startOfDay = calendar.startOfDay(for: startDate)
+        guard let endOfDay = calendar.date(bySettingHour: 23, minute: 59, second: 59, of: endDate) else {
+            print("Error creating end of day date")
+            return []
+        }
+        
         let request: NSFetchRequest<Workout> = Workout.fetchRequest()
-        request.predicate = NSPredicate(format: "date >= %@ AND date <= %@", startDate as NSDate, endDate as NSDate)
+        request.predicate = NSPredicate(format: "date >= %@ AND date <= %@", startOfDay as NSDate, endOfDay as NSDate)
         request.sortDescriptors = [NSSortDescriptor(keyPath: \Workout.date, ascending: true)]
         
         do {
-            return try context.fetch(request)
+            let workouts = try context.fetch(request)
+            print("Fetched \(workouts.count) workouts between \(startOfDay) and \(endOfDay)")
+            return workouts
         } catch {
             print("Error fetching workouts: \(error)")
             return []

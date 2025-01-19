@@ -78,4 +78,9 @@ extension MovementLog {
             return [0, 0, 0, 0]
         }
     }
+
+    var firstSetDate: Date? {
+        guard let sets = sets as? Set<SetEntity> else { return nil }
+        return sets.compactMap { $0.date }.min()
+    }
 }

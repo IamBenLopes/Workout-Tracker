@@ -44,7 +44,10 @@ struct MoreView: View {
                     }
                 }
                 
-                Section(header: Text("Goals")) {
+                Section(header: Text("Progress & Goals")) {
+                    NavigationLink(destination: ProgressView()) {
+                        Label("Progress Tracking", systemImage: "chart.line.uptrend.xyaxis")
+                    }
                     NavigationLink(destination: GoalsView()) {
                         Label("View Goals", systemImage: "flag")
                     }

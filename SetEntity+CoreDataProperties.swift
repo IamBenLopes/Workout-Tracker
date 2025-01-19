@@ -2,7 +2,7 @@
 //  SetEntity+CoreDataProperties.swift
 //  WorkoutTracker
 //
-//  Created by Benjamin Lopes on 11/1/24.
+//  Created by Benjamin Lopes on 1/18/25.
 //
 //
 
@@ -22,15 +22,16 @@ extension SetEntity {
     @NSManaged public var primaryMetricValue: Double
     @NSManaged public var primaryMetricValueLeft: Double
     @NSManaged public var primaryMetricValueRight: Double
-    @NSManaged public var usePrimarySplitMetrics: Bool
     @NSManaged public var secondaryMetricType: String?
     @NSManaged public var secondaryMetricUnit: String?
     @NSManaged public var secondaryMetricValue: Double
     @NSManaged public var secondaryMetricValueLeft: Double
     @NSManaged public var secondaryMetricValueRight: Double
-    @NSManaged public var useSecondarySplitMetrics: Bool
     @NSManaged public var setEntityId: UUID?
     @NSManaged public var setNumber: Int16
+    @NSManaged public var usePrimarySplitMetrics: Bool
+    @NSManaged public var useSecondarySplitMetrics: Bool
+    @NSManaged public var date: Date?
     @NSManaged public var movementLog: MovementLog?
 
 }

@@ -4,6 +4,7 @@ import CoreData
 struct WorkoutEditView: View {
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.managedObjectContext) private var viewContext
+    @Environment(\.dismiss) private var dismiss
     @ObservedObject var workout: Workout
     @State private var showAddMovement = false
     @State private var workoutDate: Date
@@ -68,7 +69,9 @@ struct WorkoutEditView: View {
             }
         })
         .sheet(isPresented: $showAddMovement) {
-            MovementEntryView(workout: workout)
+            MovementEntryView(workout: workout, onFinish: {
+                dismiss()
+            })
                 .environment(\.managedObjectContext, viewContext)
         }
         .onDisappear {

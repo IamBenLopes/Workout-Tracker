@@ -9,13 +9,12 @@ struct MovementLogEditView: View {
     @State private var showDeleteConfirmation = false
     @State private var setToDelete: SetEntity?
     @State private var logDate: Date
-    @State private var selectedSet: SetEntity?
-
+    
     init(movementLog: MovementLog) {
         self.movementLog = movementLog
         _logDate = State(initialValue: movementLog.date ?? Date())
     }
-
+    
     var body: some View {
         Form {
             movementDetailsSection
@@ -27,10 +26,10 @@ struct MovementLogEditView: View {
             presentationMode.wrappedValue.dismiss()
         })
         .sheet(isPresented: $showSetEntry) {
-            SetEntryView(movementLog: movementLog, 
-                        currentSetIndex: movementLog.setsArray.count,
-                        isNewSet: true)
-                .environment(\.managedObjectContext, viewContext)
+            SetEntryView(
+                movementLog: movementLog
+            )
+            .environment(\.managedObjectContext, viewContext)
         }
         .alert(isPresented: $showDeleteConfirmation) {
             Alert(
@@ -62,16 +61,16 @@ struct MovementLogEditView: View {
         Section(header: Text("Sets")) {
             ForEach(movementLog.setsArray) { set in
                 NavigationLink {
-                    SetEntryView(movementLog: movementLog, 
-                                currentSetIndex: movementLog.setsArray.firstIndex(of: set) ?? 0,
-                                isNewSet: false)
-                        .id(set.objectID)
+                    SetEntryView(
+                        movementLog: movementLog
+                    )
+                    .id(set.objectID)
                 } label: {
-                    SetRowView(set: set)
+                    SetEntity.SetRow(set: set)
                 }
             }
             .onDelete(perform: deleteSet)
-
+            
             Button(action: {
                 showSetEntry = true
             }) {
@@ -79,7 +78,16 @@ struct MovementLogEditView: View {
             }
         }
     }
-
+    
+    private func deleteSet(at offsets: IndexSet) {
+        let sets = movementLog.setsArray
+        offsets.forEach { index in
+            let set = sets[index]
+            viewContext.delete(set)
+        }
+        saveContext()
+    }
+    
     private func saveContext() {
         do {
             try viewContext.save()
@@ -87,24 +95,5 @@ struct MovementLogEditView: View {
             print("Error saving context: \(error)")
         }
     }
-
-    private func deleteSet(at offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                let setToDelete = movementLog.setsArray[index]
-                viewContext.delete(setToDelete)
-                
-                // Update set numbers for remaining sets
-                for (newIndex, set) in movementLog.setsArray.enumerated() where set.setNumber > setToDelete.setNumber {
-                    set.setNumber = Int16(newIndex + 1)
-                }
-            }
-            
-            do {
-                try viewContext.save()
-            } catch {
-                print("Error deleting set: \(error)")
-            }
-        }
-    }
 }
+

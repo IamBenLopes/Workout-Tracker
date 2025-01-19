@@ -13,6 +13,7 @@
 		961642112C98EC5600D6D05A /* MovementHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961642102C98EC5600D6D05A /* MovementHistoryView.swift */; };
 		961642142C9A214500D6D05A /* MetricType+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961642122C9A214500D6D05A /* MetricType+CoreDataClass.swift */; };
 		961642152C9A214500D6D05A /* MetricType+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961642132C9A214500D6D05A /* MetricType+CoreDataProperties.swift */; };
+		9620CA3A2D3C6C61005AA72C /* NewMovementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9620CA392D3C6C61005AA72C /* NewMovementView.swift */; };
 		9656C1472CB99515009F6E18 /* MuscleGroupSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9656C1462CB99515009F6E18 /* MuscleGroupSelectionView.swift */; };
 		9656C1492CB99AA8009F6E18 /* MuscleGroupTargetsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9656C1482CB99AA8009F6E18 /* MuscleGroupTargetsView.swift */; };
 		9656C14C2CB99B78009F6E18 /* MuscleGroupTarget+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9656C14A2CB99B78009F6E18 /* MuscleGroupTarget+CoreDataClass.swift */; };
@@ -75,6 +76,7 @@
 		96DF69602CA7421C000B765B /* SplitDayMovement+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96DF695E2CA7421C000B765B /* SplitDayMovement+CoreDataProperties.swift */; };
 		96DF69662CA77016000B765B /* SetRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96DF69652CA77016000B765B /* SetRowView.swift */; };
 		96E46CAE2CB363FC005D8D1F /* ModelExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96E46CAD2CB363FC005D8D1F /* ModelExtensions.swift */; };
+		96EF0E362CFD421100B66467 /* MetricsData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96EF0E352CFD421100B66467 /* MetricsData.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -101,6 +103,7 @@
 		961642102C98EC5600D6D05A /* MovementHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementHistoryView.swift; sourceTree = "<group>"; };
 		961642122C9A214500D6D05A /* MetricType+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MetricType+CoreDataClass.swift"; sourceTree = "<group>"; };
 		961642132C9A214500D6D05A /* MetricType+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MetricType+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		9620CA392D3C6C61005AA72C /* NewMovementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewMovementView.swift; sourceTree = "<group>"; };
 		9656C1462CB99515009F6E18 /* MuscleGroupSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MuscleGroupSelectionView.swift; sourceTree = "<group>"; };
 		9656C1482CB99AA8009F6E18 /* MuscleGroupTargetsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MuscleGroupTargetsView.swift; sourceTree = "<group>"; };
 		9656C14A2CB99B78009F6E18 /* MuscleGroupTarget+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MuscleGroupTarget+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -166,6 +169,7 @@
 		96DF695E2CA7421C000B765B /* SplitDayMovement+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SplitDayMovement+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		96DF69652CA77016000B765B /* SetRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetRowView.swift; sourceTree = "<group>"; };
 		96E46CAD2CB363FC005D8D1F /* ModelExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelExtensions.swift; sourceTree = "<group>"; };
+		96EF0E352CFD421100B66467 /* MetricsData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricsData.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -243,6 +247,7 @@
 		96CF52412C96369E0056B52D /* WorkoutTracker */ = {
 			isa = PBXGroup;
 			children = (
+				9620CA392D3C6C61005AA72C /* NewMovementView.swift */,
 				96CF52772C9638E80056B52D /* BackPainView.swift */,
 				96CF52442C96369E0056B52D /* ContentView.swift */,
 				967530552CA36A2D000946F3 /* CreateWorkoutSplitView.swift */,
@@ -251,6 +256,7 @@
 				96CF52752C9638D30056B52D /* GoalsView.swift */,
 				96CF52712C9638980056B52D /* HomeView.swift */,
 				96CF52732C9638C10056B52D /* LogsView.swift */,
+				96EF0E352CFD421100B66467 /* MetricsData.swift */,
 				96E46CAD2CB363FC005D8D1F /* ModelExtensions.swift */,
 				967530532CA3693C000946F3 /* MoreView.swift */,
 				96752F882C9A3167000946F3 /* MovementEditView.swift */,
@@ -454,6 +460,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9620CA3A2D3C6C61005AA72C /* NewMovementView.swift in Sources */,
 				96CF524C2C9636A10056B52D /* Persistence.swift in Sources */,
 				96A3B5FA2C976B4900750ED1 /* Workout+Extensions.swift in Sources */,
 				968858DD2CBEDF830059C550 /* SplitWorkoutFlow.swift in Sources */,
@@ -506,6 +513,7 @@
 				96752F892C9A3167000946F3 /* MovementEditView.swift in Sources */,
 				961642142C9A214500D6D05A /* MetricType+CoreDataClass.swift in Sources */,
 				961642152C9A214500D6D05A /* MetricType+CoreDataProperties.swift in Sources */,
+				96EF0E362CFD421100B66467 /* MetricsData.swift in Sources */,
 				96CF52A42C965CB00056B52D /* MovementTypeSelectionView.swift in Sources */,
 				96CF52A02C965BC70056B52D /* PainCheckView.swift in Sources */,
 				96752F852C9A2DC2000946F3 /* MovementLogEditView.swift in Sources */,
