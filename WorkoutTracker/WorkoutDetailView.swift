@@ -3,7 +3,6 @@ import CoreData
 
 struct WorkoutDetailView: View {
     @Environment(\.managedObjectContext) private var viewContext
-    @Environment(\.dismiss) private var dismiss
     @ObservedObject var workout: Workout
     @State private var isEditing = false
     @State private var showingMovementEntryView = false
@@ -38,9 +37,7 @@ struct WorkoutDetailView: View {
             isEditing.toggle()
         })
         .sheet(isPresented: $showingMovementEntryView) {
-            MovementEntryView(workout: workout, onFinish: {
-                dismiss()
-            })
+            MovementEntryView(workout: workout)
                 .environment(\.managedObjectContext, viewContext)
         }
     }

@@ -13,6 +13,11 @@ struct ContentView: View {
                     Label("Workout Logs", systemImage: "list.bullet")
                 }
             
+            ProgressView()
+                .tabItem {
+                    Label("Progress", systemImage: "figure.walk")
+                }
+            
             MovementsTab()
                 .tabItem {
                     Label("Movements", systemImage: "dumbbell")

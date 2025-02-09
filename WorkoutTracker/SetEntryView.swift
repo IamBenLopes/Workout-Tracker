@@ -203,38 +203,30 @@ struct SetEntryView: View {
                                 }
                             .frame(maxWidth: .infinity)
                                 .frame(height: 44)
-                                .background(hasChanges() ? Color.blue : Color.gray)
+                                .background(hasAnyInput() ? Color.blue : Color.gray)
                             .foregroundColor(.white)
                             .cornerRadius(10)
                     }
-                    .disabled(!hasChanges())
+                    .disabled(!hasAnyInput())
 
                     Button(action: {
-                        print("DEBUG: SetEntryView - Finish button tapped")
-                        print("DEBUG: SetEntryView - Current workout date: \(movementLog.workout?.date?.description ?? "nil")")
-                        print("DEBUG: SetEntryView - Is in active workout: \(isInActiveWorkout)")
-                        saveSet()
-                        
-                        if isInActiveWorkout {
-                            print("DEBUG: SetEntryView - In active workout, calling onFinish")
-                            print("DEBUG: SetEntryView - onFinish closure exists: \(onFinish != nil)")
-                            // Let the parent handle dismissing all layers—don't also dismiss here
-                            DispatchQueue.main.async {
-                                print("DEBUG: SetEntryView - Executing onFinish closure")
-                                onFinish?()  // The parent's closure handles closing *all* sheets
-                            }
+                        if currentSetNumber == 1 && !hasAnyInput() {
+                            handleCancel()
                         } else {
-                            print("DEBUG: SetEntryView - Not in active workout, dismissing view")
-                            presentationMode.wrappedValue.dismiss()
+                            print("DEBUG: SetEntryView - Finish button tapped")
+                            print("DEBUG: SetEntryView - Current workout date: \(movementLog.workout?.date?.description ?? "nil")")
+                            print("DEBUG: SetEntryView - Is in active workout: \(isInActiveWorkout)")
+                            isFinishing = true  // Set the flag before saving
+                            saveSet()
                         }
                     }) {
                                 HStack {
-                                    Image(systemName: "checkmark.circle")
-                                    Text("Finish")
+                                    Image(systemName: currentSetNumber == 1 && !hasAnyInput() ? "minus.circle.fill" : "checkmark.circle")
+                                    Text(currentSetNumber == 1 && !hasAnyInput() ? "Cancel" : "Finish")
                                 }
                             .frame(maxWidth: .infinity)
                                 .frame(height: 44)
-                            .background(Color.green)
+                            .background(currentSetNumber == 1 && !hasAnyInput() ? Color.red.opacity(0.8) : Color.green)
                             .foregroundColor(.white)
                             .cornerRadius(10)
                             }
@@ -553,6 +545,76 @@ struct SetEntryView: View {
         }
     }
     
+    // Add TimePickerView struct at file scope level
+    struct TimePickerView: View {
+        @Binding var totalSeconds: TimeInterval
+        var onDone: () -> Void
+        
+        private var durationProxy: Binding<Date> {
+            Binding<Date>(
+                get: {
+                    Date(timeIntervalSinceReferenceDate: totalSeconds)
+                },
+                set: { newDate in
+                    totalSeconds = newDate.timeIntervalSinceReferenceDate
+                }
+            )
+        }
+        
+        var body: some View {
+            NavigationView {
+                VStack(spacing: 16) {
+                    Text("Select Duration")
+                        .font(.headline)
+                        .padding(.top)
+                    
+                    DatePicker(
+                        "",
+                        selection: durationProxy,
+                        displayedComponents: .hourAndMinute
+                    )
+                    .labelsHidden()
+                    .datePickerStyle(.wheel)
+                    .frame(height: 160)
+                    
+                    Text("Duration: \(formatDuration(totalSeconds))")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
+                    // Quick presets
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 12) {
+                            ForEach([300, 600, 900, 1800, 3600], id: \.self) { seconds in
+                                Button(action: {
+                                    totalSeconds = TimeInterval(seconds)
+                                }) {
+                                    Text(formatDuration(TimeInterval(seconds)))
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 8)
+                                        .background(Color(uiColor: .secondarySystemBackground))
+                                        .cornerRadius(8)
+                                }
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
+                    .padding(.bottom)
+                }
+                .navigationBarItems(trailing: Button("Done", action: onDone))
+            }
+        }
+        
+        private func formatDuration(_ interval: TimeInterval) -> String {
+            let totalMinutes = Int(interval / 60)
+            let hours = totalMinutes / 60
+            let minutes = totalMinutes % 60
+            return hours > 0
+                ? String(format: "%d:%02d", hours, minutes)
+                : String(format: "%d min", minutes)
+        }
+    }
+    
+    // Update the metricTextField function to handle time input differently
     private func metricTextField(value: Binding<String>, label: String, nextField: Field? = nil) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(label)
@@ -561,93 +623,30 @@ struct SetEntryView: View {
             
             Group {
                 if shouldShowTimeMetric(nextField: nextField, label: label) {
-                    HStack(spacing: 8) {
-                        // Minutes
-                        HStack(spacing: 4) {
-                            TextField("0", text: Binding(
-                                get: {
-                                    if let totalSeconds = Double(value.wrappedValue) {
-                                        return String(format: "%02d", Int(totalSeconds) / 60)
-                                    }
-                                    return "00"
-                                },
-                                set: { newValue in
-                                    let cleanValue = String(newValue.prefix(2))
-                                    let minutes = min(Int(cleanValue) ?? 0, 99)
-                                    let currentSeconds = Int(value.wrappedValue) ?? 0 % 60
-                                    value.wrappedValue = "\(minutes * 60 + currentSeconds)"
-                                    selectedMinutes = minutes
-                                    countdownSeconds = minutes * 60 + currentSeconds
-                                    timerValue = Double(countdownSeconds)
-                                }
-                            ))
-                            .keyboardType(.numberPad)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .frame(maxWidth: 60)
-                            .multilineTextAlignment(.trailing)
-                            
-                            Text("min")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
+                    // Time input with formatted display and picker button
+                    Button(action: {
+                        showTimerPicker = true
+                    }) {
+                        HStack {
+                            Text(formatDuration(timerValue))
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            Image(systemName: "clock")
                         }
-                                
-                        Text(":")
-                            .font(.title3)
-                            .fontWeight(.semibold)
-                        
-                        // Seconds
-                        HStack(spacing: 4) {
-                            TextField("00", text: Binding(
-                                get: {
-                                    if let totalSeconds = Double(value.wrappedValue) {
-                                        return String(format: "%02d", Int(totalSeconds) % 60)
-                                    }
-                                    return "00"
-                                },
-                                set: { newValue in
-                                    let cleanValue = String(newValue.prefix(2))
-                                    let currentMinutes = Int(value.wrappedValue) ?? 0 / 60
-                                    let seconds = min(Int(cleanValue) ?? 0, 59)
-                                    value.wrappedValue = "\(currentMinutes * 60 + seconds)"
-                                    selectedSeconds = seconds
-                                    countdownSeconds = currentMinutes * 60 + seconds
-                                    timerValue = Double(countdownSeconds)
-                                }
-                            ))
-                            .keyboardType(.numberPad)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .frame(maxWidth: 60)
-                            .multilineTextAlignment(.trailing)
-                            
-                            Text("sec")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                        }
-                        
-                        // Quick preset buttons
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 8) {
-                                ForEach([30, 45, 60, 90, 120], id: \.self) { seconds in
-                                    Button(action: {
-                                        value.wrappedValue = "\(seconds)"
-                                        selectedMinutes = seconds / 60
-                                        selectedSeconds = seconds % 60
-                                        countdownSeconds = seconds
-                                        timerValue = Double(seconds)
-                                    }) {
-                                        Text(formatTimePreset(seconds))
-                                            .font(.subheadline)
-                                            .padding(.horizontal, 8)
-                                            .padding(.vertical, 4)
-                                            .background(Color(uiColor: .secondarySystemBackground))
-                                            .cornerRadius(8)
-                                    }
-                                }
-                            }
-                            .padding(.leading, 8)
-                        }
+                        .frame(height: 44)
+                        .padding(.horizontal, 12)
+                        .background(Color(uiColor: .systemBackground))
+                        .cornerRadius(8)
                     }
-                    .frame(height: 44)
+                    .sheet(isPresented: $showTimerPicker) {
+                        TimePickerView(
+                            totalSeconds: $timerValue,
+                            onDone: {
+                                showTimerPicker = false
+                                // Update the value binding
+                                value.wrappedValue = String(timerValue)
+                            }
+                        )
+                    }
                 } else {
                     TextField(label, text: value)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
@@ -666,25 +665,21 @@ struct SetEntryView: View {
         }
     }
     
+    // Add helper function to format duration
+    private func formatDuration(_ interval: TimeInterval) -> String {
+        let totalMinutes = Int(interval / 60)
+        let hours = totalMinutes / 60
+        let minutes = totalMinutes % 60
+        return hours > 0
+            ? String(format: "%d:%02d", hours, minutes)
+            : String(format: "%d min", minutes)
+    }
+    
     private func shouldShowTimeMetric(nextField: Field?, label: String) -> Bool {
         if let field = nextField {
             return field.isPrimaryMetric && selectedPrimaryMetricType == "Time"
         } else {
             return selectedPrimaryMetricType == "Time" && (label == "Value" || label.isEmpty)
-        }
-    }
-    
-    private func formatTimePreset(_ seconds: Int) -> String {
-        if seconds < 60 {
-            return "\(seconds)s"
-        } else {
-            let minutes = seconds / 60
-            let remainingSeconds = seconds % 60
-            if remainingSeconds == 0 {
-                return "\(minutes)m"
-            } else {
-                return "\(minutes)m \(remainingSeconds)s"
-            }
         }
     }
     
@@ -967,7 +962,68 @@ struct SetEntryView: View {
     
     // MARK: - Data & Persistence
     
+    private func fetchCurrentSets() throws {
+        guard let context = movementLog.managedObjectContext else {
+            throw NSError(domain: "No context", code: 999, userInfo: nil)
+        }
+        
+        let request: NSFetchRequest<SetEntity> = SetEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "movementLog == %@", movementLog)
+        request.sortDescriptors = [NSSortDescriptor(key: "setNumber", ascending: true)]
+        
+        let sets = try context.fetch(request)
+        currentSets = sets
+        
+        print("DEBUG: SetEntryView - fetchCurrentSets found \(sets.count) sets")
+        for (index, set) in sets.enumerated() {
+            print("DEBUG: SetEntryView - Set \(index + 1): number=\(set.setNumber), primary=\(set.primaryMetricValue), secondary=\(set.secondaryMetricValue)")
+        }
+        
+        // Calculate the next set number based on existing sets
+        let maxSetNumber = sets.map { $0.setNumber }.max() ?? 0
+        
+        // Only update numbers if we're creating a new set
+        if isNewSet {
+            currentSetIndex = sets.count
+            currentSetNumber = maxSetNumber + 1
+            highestSetNumber = currentSetNumber
+            print("DEBUG: SetEntryView - New set preparation: index=\(currentSetIndex), number=\(currentSetNumber), highest=\(highestSetNumber)")
+        }
+    }
+    
     private func saveSet() {
+        print("\nDEBUG: SetEntryView - saveSet() called")
+        print("DEBUG: SetEntryView - Current Set Number: \(currentSetNumber)")
+        print("DEBUG: SetEntryView - Primary Metric Value: '\(primaryMetricValue)'")
+        print("DEBUG: SetEntryView - Secondary Metric Value: '\(secondaryMetricValue)'")
+        print("DEBUG: SetEntryView - Primary Split Left: '\(primaryMetricValueLeft)'")
+        print("DEBUG: SetEntryView - Primary Split Right: '\(primaryMetricValueRight)'")
+        print("DEBUG: SetEntryView - Secondary Split Left: '\(secondaryMetricValueLeft)'")
+        print("DEBUG: SetEntryView - Secondary Split Right: '\(secondaryMetricValueRight)'")
+        print("DEBUG: SetEntryView - Is new set: \(isNewSet)")
+        print("DEBUG: SetEntryView - Current set exists: \(currentSet != nil)")
+        
+        // Check if all metric fields are empty
+        let hasNoValues = primaryMetricValue.isEmpty && 
+                         secondaryMetricValue.isEmpty && 
+                         primaryMetricValueLeft.isEmpty && 
+                         primaryMetricValueRight.isEmpty && 
+                         secondaryMetricValueLeft.isEmpty && 
+                         secondaryMetricValueRight.isEmpty
+
+        if hasNoValues {
+            print("DEBUG: SetEntryView - All metric fields are empty, skipping save")
+            // If we're finishing and there are no values, just return without saving
+            if isFinishing {
+                if isInActiveWorkout {
+                    onFinish?()
+                } else {
+                    presentationMode.wrappedValue.dismiss()
+                }
+            }
+            return
+        }
+
         guard let context = movementLog.managedObjectContext else {
             viewLoadError = "No context available to save"
             showErrorAlert = true
@@ -975,33 +1031,61 @@ struct SetEntryView: View {
         }
         
         let set: SetEntity
-        if isNewSet {
-            set = SetEntity(context: context)
-            set.setNumber = Int16(currentSets.count + 1)
+        let creatingNewSet = currentSet == nil
+        
+        if let existingSet = currentSet {
+            print("DEBUG: SetEntryView - Updating existing set \(existingSet.setNumber)")
+            set = existingSet
         } else {
-            if let existingSet = currentSet {
-                set = existingSet
-            } else {
-                set = SetEntity(context: context)
-                set.setNumber = currentSetNumber
-            }
+            print("DEBUG: SetEntryView - Creating new set")
+            set = SetEntity(context: context)
+            
+            // Calculate the next set number
+            let maxSetNumber = (currentSets.map { $0.setNumber }.max() ?? 0)
+            let nextSetNumber = maxSetNumber + 1
+            set.setNumber = nextSetNumber
+            print("DEBUG: SetEntryView - New set number: \(nextSetNumber)")
         }
         
         updateSet(set)
         
         do {
             try context.save()
+            print("DEBUG: SetEntryView - Successfully saved set to context")
             try fetchCurrentSets()
-            resetFields()
+            print("DEBUG: SetEntryView - Current sets after save: \(currentSets.count)")
+            
+            // If we're finishing, just execute finish logic and return
+            if isFinishing {
+                print("DEBUG: SetEntryView - Skipping next-set logic because finishing")
+                if isInActiveWorkout {
+                    onFinish?()
+                } else {
+                    presentationMode.wrappedValue.dismiss()
+                }
+                return
+            }
+            
+            // Only prepare for next set if we're not finishing
+            if creatingNewSet {
+                resetFields()
+                // Prepare for the next set
+                let maxSetNumber = currentSets.map { $0.setNumber }.max() ?? 0
+                currentSetNumber = maxSetNumber + 1
+                currentSetIndex = currentSets.count
+                isNewSet = true  // Ensure we stay in new set mode
+                print("DEBUG: SetEntryView - Prepared for next set: number=\(currentSetNumber), index=\(currentSetIndex)")
+            }
             
         } catch {
+            print("DEBUG: SetEntryView - Error saving set: \(error)")
             viewLoadError = error.localizedDescription
             showErrorAlert = true
         }
     }
 
     private func updateSet(_ set: SetEntity) {
-        set.setNumber = currentSetNumber
+        // Don't update the set number here - it should only be set when creating a new set
         set.movementLog = movementLog
         set.date = Date()
         
@@ -1050,24 +1134,6 @@ struct SetEntryView: View {
         }
     }
 
-    private func fetchCurrentSets() throws {
-        guard let context = movementLog.managedObjectContext else {
-            throw NSError(domain: "No context", code: 999, userInfo: nil)
-        }
-        
-        let request: NSFetchRequest<SetEntity> = SetEntity.fetchRequest()
-        request.predicate = NSPredicate(format: "movementLog == %@", movementLog)
-        request.sortDescriptors = [NSSortDescriptor(key: "setNumber", ascending: true)]
-        
-        let sets = try context.fetch(request)
-        currentSets = sets
-        
-        // After refreshing, set the index to the end so we can create a new set
-        currentSetIndex = currentSets.count
-        currentSetNumber = Int16(currentSetIndex + 1)
-        highestSetNumber = currentSetNumber
-    }
-    
     private func loadExistingSet(_ set: SetEntity) {
         currentSet = set
         currentSetNumber = set.setNumber
@@ -1188,13 +1254,13 @@ struct SetEntryView: View {
     }
 
     private func hasChanges() -> Bool {
-        // If we haven’t loaded a set yet, or if isNewSet, allow saving
+        // If we haven't loaded a set yet, or if isNewSet, allow saving
         guard currentSetIndex < currentSets.count else {
             return true
         }
             let currentSet = currentSets[currentSetIndex]
         
-        // Compare fields to the set’s values
+        // Compare fields to the set's values
         if primaryMetricValue != currentSet.formattedPrimaryMetricValue { return true }
         if secondaryMetricValue != currentSet.formattedSecondaryMetricValue { return true }
         if notes != (currentSet.notes ?? "") { return true }
@@ -1388,38 +1454,30 @@ struct SetEntryView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .frame(height: 44)
-                    .background(hasChanges() ? Color.blue : Color.gray)
+                    .background(hasAnyInput() ? Color.blue : Color.gray)
                     .foregroundColor(.white)
                     .cornerRadius(10)
                 }
-                .disabled(!hasChanges())
+                .disabled(!hasAnyInput())
                 
                 Button(action: {
-                    print("DEBUG: SetEntryView - Finish button tapped")
-                    print("DEBUG: SetEntryView - Current workout date: \(movementLog.workout?.date?.description ?? "nil")")
-                    print("DEBUG: SetEntryView - Is in active workout: \(isInActiveWorkout)")
-                    saveSet()
-                    
-                    if isInActiveWorkout {
-                        print("DEBUG: SetEntryView - In active workout, calling onFinish")
-                        print("DEBUG: SetEntryView - onFinish closure exists: \(onFinish != nil)")
-                        // Let the parent handle dismissing all layers—don't also dismiss here
-                        DispatchQueue.main.async {
-                            print("DEBUG: SetEntryView - Executing onFinish closure")
-                            onFinish?()  // The parent's closure handles closing *all* sheets
-                        }
+                    if currentSetNumber == 1 && !hasAnyInput() {
+                        handleCancel()
                     } else {
-                        print("DEBUG: SetEntryView - Not in active workout, dismissing view")
-                        presentationMode.wrappedValue.dismiss()
+                        print("DEBUG: SetEntryView - Finish button tapped")
+                        print("DEBUG: SetEntryView - Current workout date: \(movementLog.workout?.date?.description ?? "nil")")
+                        print("DEBUG: SetEntryView - Is in active workout: \(isInActiveWorkout)")
+                        isFinishing = true  // Set the flag before saving
+                        saveSet()
                     }
                 }) {
                     HStack {
-                        Image(systemName: "checkmark.circle")
-                        Text("Finish")
+                        Image(systemName: currentSetNumber == 1 && !hasAnyInput() ? "minus.circle.fill" : "checkmark.circle")
+                        Text(currentSetNumber == 1 && !hasAnyInput() ? "Cancel" : "Finish")
                     }
                     .frame(maxWidth: .infinity)
                     .frame(height: 44)
-                    .background(Color.green)
+                    .background(currentSetNumber == 1 && !hasAnyInput() ? Color.red.opacity(0.8) : Color.green)
                     .foregroundColor(.white)
                     .cornerRadius(10)
                 }
@@ -1457,5 +1515,40 @@ struct SetEntryView: View {
             return Calendar.current.isDateInToday(workoutDate)
         }
         return false
+    }
+
+    // Add isFinishing state
+    @State private var isFinishing = false
+
+    // Add helper function to check for any input
+    private func hasAnyInput() -> Bool {
+        // If any field is non-empty, return true
+        if !primaryMetricValue.isEmpty { return true }
+        if !secondaryMetricValue.isEmpty { return true }
+        if !primaryMetricValueLeft.isEmpty { return true }
+        if !primaryMetricValueRight.isEmpty { return true }
+        if !secondaryMetricValueLeft.isEmpty { return true }
+        if !secondaryMetricValueRight.isEmpty { return true }
+        if !notes.isEmpty { return true }
+        return false
+    }
+
+    // Add property to check if we should delete on cancel
+    private var shouldDeleteOnCancel: Bool {
+        return currentSetNumber == 1 && !hasAnyInput() && currentSets.isEmpty
+    }
+
+    private func handleCancel() {
+        if shouldDeleteOnCancel {
+            // Delete the movement log if it's empty and first set
+            viewContext.delete(movementLog)
+            do {
+                try viewContext.save()
+                print("DEBUG: SetEntryView - Deleted empty movement log on cancel")
+            } catch {
+                print("DEBUG: SetEntryView - Error deleting movement log: \(error)")
+            }
+        }
+        dismiss()
     }
 }

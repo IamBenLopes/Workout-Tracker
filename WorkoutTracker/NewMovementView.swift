@@ -139,21 +139,24 @@ struct NewMovementView: View {
             VStack(spacing: 0) {
                 Divider()
                 Button(action: {
-                    print("DEBUG: NewMovementView - Create button tapped")
-                    createMovement()
+                    if name.isEmpty {
+                        dismiss()
+                    } else {
+                        print("DEBUG: NewMovementView - Create button tapped")
+                        createMovement()
+                    }
                 }) {
                     HStack {
                         Spacer()
-                        Image(systemName: "plus.circle.fill")
-                        Text("Create Movement")
+                        Image(systemName: name.isEmpty ? "minus.circle.fill" : "plus.circle.fill")
+                        Text(name.isEmpty ? "Cancel" : "Create Movement")
                             .font(.headline)
                         Spacer()
                     }
                     .frame(minHeight: 54)
                     .foregroundColor(.white)
-                    .background(name.isEmpty ? Color.gray : Color.accentColor)
+                    .background(name.isEmpty ? Color.red.opacity(0.8) : Color.accentColor)
                 }
-                .disabled(name.isEmpty)
             }
             .background(Color(uiColor: .systemBackground))
         }
@@ -162,7 +165,6 @@ struct NewMovementView: View {
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button("Cancel") {
-                    print("DEBUG: NewMovementView - Cancel button tapped")
                     dismiss()
                 }
             }

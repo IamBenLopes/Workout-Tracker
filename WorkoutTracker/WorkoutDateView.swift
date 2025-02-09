@@ -12,41 +12,56 @@ struct WorkoutDateView: View {
     @ObservedObject var splitManager: WorkoutSplitManager
     
     var body: some View {
-        VStack {
-            Text("Select Workout Date")
-                .font(.headline)
-                .padding()
+        VStack(spacing: 24) {
+            VStack(spacing: 8) {
+                Text("Select Workout Date")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .padding(.top, 16)
+                
+                Text("Choose when you completed this workout")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
             
             DatePicker("Workout Date", selection: $workoutDate, displayedComponents: .date)
                 .datePickerStyle(GraphicalDatePickerStyle())
-                .padding()
+                .padding(.horizontal)
+                .tint(.blue)
             
-            Button(action: {
-                createNewWorkout()
-                navigateToPainCheck = true
-            }) {
-                Text("Next")
-                    .foregroundColor(.white)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.blue)
-                    .cornerRadius(10)
-            }
-            .padding()
-        }
-        .navigationTitle("New Workout")
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button("Cancel") {
+            Spacer()
+            
+            VStack(spacing: 16) {
+                Button(action: {
+                    createNewWorkout()
+                    navigateToPainCheck = true
+                }) {
+                    Text("Continue")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity, minHeight: 50)
+                        .background(Color.blue)
+                        .cornerRadius(12)
+                }
+                
+                Button(action: {
                     showCancelAlert = true
+                }) {
+                    Text("Cancel")
+                        .font(.headline)
+                        .foregroundColor(.red)
+                        .frame(maxWidth: .infinity, minHeight: 50)
                 }
             }
+            .padding(.horizontal, 24)
+            .padding(.bottom, 32)
         }
+        .navigationBarTitleDisplayMode(.inline)
         .alert("Cancel Workout", isPresented: $showCancelAlert) {
-            Button("Yes", role: .destructive) {
+            Button("Yes, Cancel", role: .destructive) {
                 dismiss()
             }
-            Button("No", role: .cancel) { }
+            Button("Keep Editing", role: .cancel) { }
         } message: {
             Text("Are you sure you want to cancel? All data will be lost.")
         }

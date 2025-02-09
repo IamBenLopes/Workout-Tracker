@@ -134,18 +134,29 @@ extension SetEntity {
                             )
                         } else {
                             // Show L/R values when different
-                            HStack(spacing: 8) {
-                                MetricView(
-                                    label: "L",
-                                    value: formatValue(set.primaryMetricValueLeft),
-                                    unit: set.primaryMetricUnit ?? ""
-                                )
+                            HStack(spacing: 4) {
+                                // Left value
+                                HStack(spacing: 2) {
+                                    Text("L")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    Text(formatValue(set.primaryMetricValueLeft))
+                                        .font(.subheadline.weight(.medium))
+                                }
                                 
-                                MetricView(
-                                    label: "R",
-                                    value: formatValue(set.primaryMetricValueRight),
-                                    unit: set.primaryMetricUnit ?? ""
-                                )
+                                // Right value
+                                HStack(spacing: 2) {
+                                    Text("R")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    Text(formatValue(set.primaryMetricValueRight))
+                                        .font(.subheadline.weight(.medium))
+                                }
+                                
+                                // Unit (shown once for both L/R)
+                                Text(set.primaryMetricUnit ?? "")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
                             }
                         }
                     } else {
@@ -157,12 +168,50 @@ extension SetEntity {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 
-                // Secondary Metrics (if any)
-                if let secondaryValue = formatSecondaryValue() {
-                    Text(secondaryValue)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                // Secondary Metrics
+                Group {
+                    if set.useSecondarySplitMetrics {
+                        if areValuesEqual(set.secondaryMetricValueLeft, set.secondaryMetricValueRight) {
+                            // Show single value when L/R are equal
+                            MetricView(
+                                value: formatValue(set.secondaryMetricValueLeft),
+                                unit: set.secondaryMetricUnit ?? ""
+                            )
+                        } else {
+                            // Show L/R values when different
+                            HStack(spacing: 4) {
+                                // Left value
+                                HStack(spacing: 2) {
+                                    Text("L")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    Text(formatValue(set.secondaryMetricValueLeft))
+                                        .font(.subheadline.weight(.medium))
+                                }
+                                
+                                // Right value
+                                HStack(spacing: 2) {
+                                    Text("R")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    Text(formatValue(set.secondaryMetricValueRight))
+                                        .font(.subheadline.weight(.medium))
+                                }
+                                
+                                // Unit (shown once for both L/R)
+                                Text(set.secondaryMetricUnit ?? "")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    } else {
+                        MetricView(
+                            value: formatValue(set.secondaryMetricValue),
+                            unit: set.secondaryMetricUnit ?? ""
+                        )
+                    }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
             .frame(minHeight: 32)
             .contentShape(Rectangle())
@@ -202,21 +251,10 @@ extension SetEntity {
         }
         
         private func formatValue(_ value: Double) -> String {
-            String(format: "%.1f", value)
-        }
-        
-        private func formatSecondaryValue() -> String? {
-            guard let type = set.secondaryMetricType,
-                  type != "None" else { return nil }
-            
-            if set.useSecondarySplitMetrics {
-                if areValuesEqual(set.secondaryMetricValueLeft, set.secondaryMetricValueRight) {
-                    return "\(type): \(formatValue(set.secondaryMetricValueLeft))"
-                } else {
-                    return "\(type) L:\(formatValue(set.secondaryMetricValueLeft)) R:\(formatValue(set.secondaryMetricValueRight))"
-                }
+            if value.truncatingRemainder(dividingBy: 1) == 0 {
+                return String(format: "%.0f", value)
             } else {
-                return "\(type): \(formatValue(set.secondaryMetricValue))"
+                return String(format: "%.1f", value)
             }
         }
     }

@@ -20,10 +20,17 @@ struct WorkoutFocusView: View {
     }
 
     var body: some View {
-        VStack {
-            Text("Select Workout Focus")
-                .font(.headline)
-                .padding()
+        VStack(spacing: 24) {
+            VStack(spacing: 8) {
+                Text("Workout Focus")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .padding(.top, 16)
+                
+                Text("Select the muscle groups you'll be working on")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
 
             List {
                 ForEach(focusAreas, id: \.self) { area in
@@ -40,46 +47,49 @@ struct WorkoutFocusView: View {
                 }
             }
             .listStyle(PlainListStyle())
-
-            Button(action: {
-                let sortedAreas = selectedFocusAreas.sorted()
-                workout.workoutFocus = sortedAreas.joined(separator: ", ")
-                do {
-                    try viewContext.save()
-                    navigateToOverview = true
-                } catch {
-                    print("Error saving workout focus: \(error)")
+            
+            VStack(spacing: 16) {
+                Button(action: {
+                    let sortedAreas = selectedFocusAreas.sorted()
+                    workout.workoutFocus = sortedAreas.joined(separator: ", ")
+                    do {
+                        try viewContext.save()
+                        navigateToOverview = true
+                    } catch {
+                        print("Error saving workout focus: \(error)")
+                    }
+                }) {
+                    Text("Continue")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity, minHeight: 50)
+                        .background(selectedFocusAreas.isEmpty ? Color.gray.opacity(0.5) : Color.blue)
+                        .cornerRadius(12)
                 }
-            }) {
-                Text("Next")
-                    .foregroundColor(.white)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(selectedFocusAreas.isEmpty ? Color.gray.opacity(0.5) : Color.blue)
-                    .cornerRadius(10)
-            }
-            .padding()
-            .disabled(selectedFocusAreas.isEmpty)
-        }
-        .navigationTitle("Workout Focus")
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button("Cancel") {
+                .disabled(selectedFocusAreas.isEmpty)
+                
+                Button(action: {
                     showCancelAlert = true
+                }) {
+                    Text("Cancel")
+                        .font(.headline)
+                        .foregroundColor(.red)
+                        .frame(maxWidth: .infinity, minHeight: 50)
                 }
             }
+            .padding(.horizontal, 24)
+            .padding(.bottom, 32)
         }
-        .alert(isPresented: $showCancelAlert) {
-            Alert(
-                title: Text("Cancel Workout"),
-                message: Text("All data will be lost if you continue."),
-                primaryButton: .destructive(Text("Yes")) {
-                    viewContext.delete(workout)
-                    try? viewContext.save()
-                    dismiss()
-                },
-                secondaryButton: .cancel()
-            )
+        .navigationBarTitleDisplayMode(.inline)
+        .alert("Cancel Workout", isPresented: $showCancelAlert) {
+            Button("Yes, Cancel", role: .destructive) {
+                viewContext.delete(workout)
+                try? viewContext.save()
+                dismiss()
+            }
+            Button("Keep Editing", role: .cancel) { }
+        } message: {
+            Text("Are you sure you want to cancel? All data will be lost.")
         }
         .navigationDestination(isPresented: $navigateToOverview) {
             WorkoutOverviewView(workout: workout, splitDay: splitDay, isPresented: $navigateToOverview, onFinish: {
@@ -99,12 +109,17 @@ struct MultipleSelectionRow: View {
         Button(action: action) {
             HStack {
                 Text(title)
+                    .font(.body)
+                    .foregroundColor(.primary)
                 Spacer()
                 if isSelected {
-                    Image(systemName: "checkmark")
+                    Image(systemName: "checkmark.circle.fill")
                         .foregroundColor(.blue)
+                        .imageScale(.large)
                 }
             }
+            .contentShape(Rectangle())
+            .padding(.vertical, 4)
         }
     }
 }
