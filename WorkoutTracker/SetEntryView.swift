@@ -841,14 +841,14 @@ struct SetEntryView: View {
             Text("Notes")
                 .font(.headline)
             TextEditor(text: $notes)
-                .frame(height: 100)
+                .frame(minHeight: 100)
                 .padding(8)
                 .background(Color(uiColor: .systemBackground))
                 .cornerRadius(8)
                 .overlay(
-            RoundedRectangle(cornerRadius: 8)
+                    RoundedRectangle(cornerRadius: 8)
                         .stroke(Color.secondary.opacity(0.3), lineWidth: 1)
-        )
+                )
         }
         .padding()
         .background(Color(uiColor: .secondarySystemBackground))
@@ -857,8 +857,17 @@ struct SetEntryView: View {
 
     private var previousWorkoutCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Previous Workout")
-                .font(.headline)
+            // Header with date
+            HStack {
+                Text("Previous Workout")
+                    .font(.headline)
+                Spacer()
+                if let date = previousWorkoutSets.first?.movementLog?.workout?.date {
+                    Text(date.formatted(date: .abbreviated, time: .omitted))
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+            }
             
             ForEach(previousWorkoutSets.indices, id: \.self) { index in
                 let set = previousWorkoutSets[index]
@@ -872,6 +881,7 @@ struct SetEntryView: View {
                         HStack {
                             Text(primary)
                                 .fontWeight(.medium)
+                                .frame(width: 80, alignment: .leading)
                             Text(formatPreviousWorkoutPrimaryMetric(set))
                         }
                     }
@@ -880,6 +890,7 @@ struct SetEntryView: View {
                         HStack {
                             Text(secondary)
                                 .fontWeight(.medium)
+                                .frame(width: 80, alignment: .leading)
                             Text(formatPreviousWorkoutSet(set))
                         }
                     }
@@ -888,10 +899,15 @@ struct SetEntryView: View {
                         Text(notes)
                             .font(.subheadline)
                             .foregroundColor(.secondary)
+                            .padding(.top, 4)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
                 .padding(.vertical, 8)
-                Divider()
+                
+                if index < previousWorkoutSets.count - 1 {
+                    Divider()
+                }
             }
         }
         .padding()
@@ -911,7 +927,7 @@ struct SetEntryView: View {
                 
                 if isEditingDescription {
                     TextEditor(text: $movementDescription)
-                        .frame(height: 100)
+                        .frame(minHeight: 100)
                         .padding(8)
                         .background(Color(uiColor: .systemBackground))
                         .cornerRadius(8)
@@ -922,6 +938,8 @@ struct SetEntryView: View {
                 } else {
                     Text(movementDescription.isEmpty ? "No description available" : movementDescription)
                         .foregroundColor(movementDescription.isEmpty ? .secondary : .primary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.vertical, 4)
                 }
                 
                 Button(isEditingDescription ? "Save Description" : "Edit Description") {
@@ -942,11 +960,14 @@ struct SetEntryView: View {
                     Image(uiImage: image)
                         .resizable()
                         .scaledToFit()
-                        .frame(height: 200)
+                        .frame(maxHeight: 200)
                         .cornerRadius(8)
+                        .frame(maxWidth: .infinity, alignment: .center)
                 } else {
                     Text("No photo available")
                         .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.vertical, 4)
                 }
                 
                 Button("Change Photo") {
@@ -1135,6 +1156,7 @@ struct SetEntryView: View {
     }
 
     private func loadExistingSet(_ set: SetEntity) {
+        print("DEBUG: SetEntryView - loadExistingSet called for set number: \(set.setNumber)")
         currentSet = set
         currentSetNumber = set.setNumber
         highestSetNumber = Int16(currentSets.count)
@@ -1207,6 +1229,7 @@ struct SetEntryView: View {
     // MARK: - Navigation
     
     private func nextSet() {
+        print("DEBUG: SetEntryView - nextSet called. Current index: \(currentSetIndex)")
         // If we have existing sets, move forward
         if currentSetIndex < currentSets.count - 1 {
             currentSetIndex += 1
@@ -1215,8 +1238,8 @@ struct SetEntryView: View {
             // Reached the end of existing sets, prepare a new set
             currentSetIndex = currentSets.count
             currentSetNumber = Int16(currentSets.count + 1)
-            
-            // Clear fields but preserve toggles
+            isNewSet = true
+            print("DEBUG: SetEntryView - Preparing new set. Index: \(currentSetIndex), Set number: \(currentSetNumber)")
             resetFields()
         }
         
@@ -1226,6 +1249,7 @@ struct SetEntryView: View {
     }
 
     private func previousSet() {
+        print("DEBUG: SetEntryView - previousSet called. New index: \(currentSetIndex - 1)")
         if currentSetIndex > 0 {
             currentSetIndex -= 1
             loadSet(at: currentSetIndex)
@@ -1233,8 +1257,14 @@ struct SetEntryView: View {
     }
     
     private func loadSet(at index: Int) {
-        guard index < currentSets.count else { return }
+        print("DEBUG: SetEntryView - loadSet called with index \(index)")
+        guard index < currentSets.count else {
+            print("DEBUG: SetEntryView - loadSet called with index \(index) which is out of bounds (currentSets count: \(currentSets.count))")
+            return
+        }
         let set = currentSets[index]
+        print("DEBUG: SetEntryView - Loading set at index \(index). Set number: \(set.setNumber)")
+        isNewSet = false
         loadExistingSet(set)
     }
     
@@ -1248,9 +1278,8 @@ struct SetEntryView: View {
         secondaryMetricValueLeft = ""
         secondaryMetricValueRight = ""
         notes = ""
-        
-        // Set focus to the appropriate field
-        focusedField = usePrimarySplitMetrics ? .primaryMetricValueLeft : .primaryMetricValue
+        print("DEBUG: SetEntryView - resetFields called. Clearing currentSet.")
+        currentSet = nil
     }
 
     private func hasChanges() -> Bool {
