@@ -279,15 +279,15 @@ struct StatsSummaryView: View {
         VStack(spacing: 12) {
             if let stats = stats {
                 HStack {
-                    StatCard(title: "Personal Best", value: stats.personalBest, unit: stats.unit)
-                    StatCard(title: "Average", value: stats.average, unit: stats.unit)
+                    ProgressStatCard(title: "Personal Best", value: stats.personalBest, unit: stats.unit)
+                    ProgressStatCard(title: "Average", value: stats.average, unit: stats.unit)
                     if stats.usesSplitMetrics {
-                        StatCard(title: "L/R Ratio", value: stats.leftRightRatio, unit: "%")
+                        ProgressStatCard(title: "L/R Ratio", value: stats.leftRightRatio, unit: "%")
                     }
                 }
                 
                 if let volume = stats.totalVolume {
-                    StatCard(title: "Total Volume", value: volume, unit: stats.unit)
+                    ProgressStatCard(title: "Total Volume", value: volume, unit: stats.unit)
                 }
             }
         }
@@ -305,7 +305,7 @@ struct StatsSummaryView: View {
     }
 }
 
-struct StatCard: View {
+struct ProgressStatCard: View {
     let title: String
     let value: Double
     let unit: String
@@ -473,5 +473,3 @@ private func calculateProgress(for movement: Movement) -> Double {
     
     return finalValue
 }
-
-

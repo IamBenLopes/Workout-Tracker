@@ -18,6 +18,11 @@ struct ContentView: View {
                     Label("Movements", systemImage: "dumbbell")
                 }
             
+            WorkoutTracker.ProgressView()
+                .tabItem {
+                    Label("Progress", systemImage: "chart.bar.fill")
+                }
+            
             MoreView()
                 .tabItem {
                     Label("More", systemImage: "ellipsis.circle")
@@ -25,4 +30,3 @@ struct ContentView: View {
         }
     }
 }
-
