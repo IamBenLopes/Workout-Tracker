@@ -1,0 +1,12 @@
+Command failed: which xcodebuild && xcodebuild -project "/Users/benjaminlopes/Desktop/Master Folder/School/mis 125/XCODE/app test/app test/Workout Tracker/WorkoutTracker.xcodeproj"         -scheme "WorkoutTracker"         -configuration "Debug"         -destination 'platform=iOS Simulator,name=iPhone 15 Pro'         -resultBundlePath "/Users/benjaminlopes/Desktop/Master Folder/School/mis 125/XCODE/app test/app test/Workout Tracker/TestReports/Reports-2025-02-26T02-25-01-667Z.xcresult"         -enableCodeCoverage YES         -UseModernBuildSystem=YES         -json         clean test 2>&1 | tee /Users/benjaminlopes/Desktop/Master Folder/School/mis 125/XCODE/app test/app test/Workout Tracker/build-logs/test-2025-02-26T02-25-01-667Z.log
+tee: Folder/School/mis: No such file or directory
+tee: 125/XCODE/app: No such file or directory
+tee: test/app: No such file or directory
+tee: test/Workout: No such file or directory
+tee: Tracker/build-logs/test-2025-02-26T02-25-01-667Z.log: No such file or directory
+
+tee: Folder/School/mis: No such file or directory
+tee: 125/XCODE/app: No such file or directory
+tee: test/app: No such file or directory
+tee: test/Workout: No such file or directory
+tee: Tracker/build-logs/test-2025-02-26T02-25-01-667Z.log: No such file or directory

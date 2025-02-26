@@ -227,35 +227,97 @@ struct MovementDetailView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @State private var timeRange: TimeRange = .month
     @State private var showingFilters = false
+    @State private var showingAllSets = false
     
     var body: some View {
         ScrollView {
-            VStack(spacing: 16) {
-                // Time range picker
-                timeRangePicker
+            VStack(spacing: 20) {
+                // Header with muscle groups
+                if let muscleGroups = movement.muscleGroups, !muscleGroups.isEmpty {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(Array(muscleGroups), id: \.self) { muscleGroup in
+                                Text(muscleGroup.name ?? "Unknown")
+                                    .font(.caption)
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 5)
+                                    .background(Color.blue.opacity(0.1))
+                                    .cornerRadius(15)
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
+                }
                 
-                // Progress Graph
-                MovementGraphView(movement: movement)
-                    .frame(height: 200)
-                    .padding()
+                // Time Range Picker with improved styling
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Time Period")
+                        .font(.headline)
+                        .padding(.horizontal)
+                    
+                    timeRangePicker
+                }
+                .padding(.vertical, 8)
                 
-                // Stats Summary
-                StatsSummaryView(movement: movement, timeRange: timeRange)
+                // Movement Graph with improved layout
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Performance Graph")
+                        .font(.headline)
+                        .padding(.horizontal)
+                    
+                    MovementGraphView(movement: movement, timeRange: $timeRange)
+                }
                 
-                // Recent Sets List
-                RecentSetsView(movement: movement)
+                // Stats Summary with improved styling
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Performance Summary")
+                        .font(.headline)
+                        .padding(.horizontal)
+                    
+                    StatsSummaryView(movement: movement, timeRange: timeRange)
+                        .background(Color(.systemBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .shadow(color: .gray.opacity(0.2), radius: 5, x: 0, y: 2)
+                        .padding(.horizontal)
+                }
+                
+                // Recent Sets List with improved styling
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("Recent Sets")
+                            .font(.headline)
+                        
+                        Spacer()
+                        
+                        Button(action: { showingAllSets.toggle() }) {
+                            Text(showingAllSets ? "Show Less" : "Show All")
+                                .font(.subheadline)
+                                .foregroundColor(.blue)
+                        }
+                    }
+                    .padding(.horizontal)
+                    
+                    RecentSetsView(movement: movement, showAll: showingAllSets)
+                        .background(Color(.systemBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .shadow(color: .gray.opacity(0.2), radius: 5, x: 0, y: 2)
+                        .padding(.horizontal)
+                }
             }
+            .padding(.vertical)
         }
         .navigationTitle(movement.name ?? "Movement Progress")
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(action: { showingFilters = true }) {
-                    Image(systemName: "line.3.horizontal.decrease.circle")
+                    Label("Filter", systemImage: "line.3.horizontal.decrease.circle")
+                        .labelStyle(.iconOnly)
                 }
             }
         }
         .sheet(isPresented: $showingFilters) {
             FilterView(movement: movement)
+                .presentationDetents([.medium, .large])
         }
     }
     
@@ -266,7 +328,7 @@ struct MovementDetailView: View {
             }
         }
         .pickerStyle(.segmented)
-        .padding()
+        .padding(.horizontal)
     }
 }
 
@@ -279,16 +341,24 @@ struct StatsSummaryView: View {
         VStack(spacing: 12) {
             if let stats = stats {
                 HStack {
-                    StatCard(title: "Personal Best", value: stats.personalBest, unit: stats.unit)
-                    StatCard(title: "Average", value: stats.average, unit: stats.unit)
+                    StatCard(title: "Personal Best", value: stats.personalBest, unit: stats.unit, iconName: "trophy.fill", color: .yellow)
+                    StatCard(title: "Average", value: stats.average, unit: stats.unit, iconName: "chart.bar.fill", color: .blue)
                     if stats.usesSplitMetrics {
-                        StatCard(title: "L/R Ratio", value: stats.leftRightRatio, unit: "%")
+                        StatCard(title: "L/R Ratio", value: stats.leftRightRatio, unit: "%", iconName: "arrow.left.arrow.right", color: .green)
                     }
                 }
                 
                 if let volume = stats.totalVolume {
-                    StatCard(title: "Total Volume", value: volume, unit: stats.unit)
+                    StatCard(title: "Total Volume", value: volume, unit: stats.unit, iconName: "sum", color: .purple)
+                        .frame(maxWidth: .infinity)
                 }
+            } else {
+                HStack(spacing: 12) {
+                    ProgressView()
+                    Text("Loading stats...")
+                        .foregroundColor(.secondary)
+                }
+                .frame(height: 100)
             }
         }
         .padding()
@@ -302,6 +372,29 @@ struct StatsSummaryView: View {
     
     private func loadStats() {
         // Implement stats calculation based on timeRange
+        // This is a placeholder for the actual implementation
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            // Simulate loading data
+            if movement.movementLogs?.count ?? 0 > 0 {
+                stats = MovementSummaryStats(
+                    personalBest: 225.0,
+                    average: 195.0,
+                    leftRightRatio: 0.9,
+                    totalVolume: 3300.0,
+                    usesSplitMetrics: movement.hasAnySplitMetrics,
+                    unit: getMetricUnit(for: movement)
+                )
+            } else {
+                stats = MovementSummaryStats(
+                    personalBest: 0.0,
+                    average: 0.0,
+                    leftRightRatio: 0.0,
+                    totalVolume: 0.0,
+                    usesSplitMetrics: movement.hasAnySplitMetrics,
+                    unit: getMetricUnit(for: movement)
+                )
+            }
+        }
     }
 }
 
@@ -309,21 +402,32 @@ struct StatCard: View {
     let title: String
     let value: Double
     let unit: String
+    let iconName: String
+    let color: Color
     
     var body: some View {
-        VStack {
+        VStack(spacing: 6) {
+            Image(systemName: iconName)
+                .font(.system(size: 20))
+                .foregroundColor(color)
+                .padding(.bottom, 2)
+            
             Text(title)
                 .font(.caption)
                 .foregroundColor(.secondary)
+            
             Text(String(format: "%.1f", value))
                 .font(.headline)
+                .foregroundColor(.primary)
+            
             Text(unit)
                 .font(.caption2)
                 .foregroundColor(.secondary)
         }
         .frame(maxWidth: .infinity)
-        .padding()
-        .background(Color(.systemGray6))
+        .padding(.vertical, 10)
+        .padding(.horizontal, 5)
+        .background(color.opacity(0.1))
         .cornerRadius(10)
     }
 }
@@ -339,59 +443,102 @@ struct MovementSummaryStats {
 
 struct RecentSetsView: View {
     @ObservedObject var movement: Movement
+    var showAll: Bool = false
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Recent Sets")
-                .font(.headline)
-                .padding(.horizontal)
-            
+        VStack(alignment: .leading, spacing: 12) {
             if let movementLogs = movement.movementLogs {
                 let sortedLogs = Array(movementLogs)
                     .sorted { ($0.date ?? .distantPast) > ($1.date ?? .distantPast) }
                 
-                ForEach(sortedLogs.prefix(3), id: \.self) { log in
-                    MovementLog.LogCard(log: log)  // Use the fully qualified name
+                if sortedLogs.isEmpty {
+                    emptyStateView
+                } else {
+                    let logsToShow = showAll ? sortedLogs : Array(sortedLogs.prefix(3))
+                    
+                    ForEach(logsToShow, id: \.self) { log in
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Text(log.formattedDate)
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                
+                                Spacer()
+                                
+                                Text(log.workout?.workoutName ?? "Unknown Workout")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Divider()
+                            
+                            ForEach(log.setsArray.prefix(3), id: \.self) { set in
+                                HStack {
+                                    Text("Set \(set.setNumber)")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                        .frame(width: 50, alignment: .leading)
+                                    
+                                    if set.usePrimarySplitMetrics {
+                                        HStack(spacing: 2) {
+                                            Text("L: \(Int(set.primaryMetricValueLeft))")
+                                            Text("R: \(Int(set.primaryMetricValueRight))")
+                                        }
+                                        .font(.subheadline)
+                                    } else {
+                                        Text("\(Int(set.primaryMetricValue))")
+                                            .font(.subheadline)
+                                    }
+                                    
+                                    Text(set.primaryMetricUnit ?? "")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    
+                                    Spacer()
+                                    
+                                    if set.secondaryMetricValue > 0 && set.secondaryMetricType == "Reps" {
+                                        Text("\(Int(set.secondaryMetricValue)) reps")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
+                                .padding(.vertical, 4)
+                            }
+                            
+                            if log.setsArray.count > 3 {
+                                Text("+ \(log.setsArray.count - 3) more sets")
+                                    .font(.caption)
+                                    .foregroundColor(.blue)
+                                    .padding(.top, 4)
+                            }
+                        }
+                        .padding()
+                        .background(Color(.systemGray6))
+                        .cornerRadius(10)
+                        .padding(.horizontal)
+                    }
                 }
             } else {
-                Text("No recent sets")
-                    .foregroundColor(.secondary)
-                    .padding()
+                emptyStateView
             }
         }
         .padding(.vertical)
     }
-}
-
-
-
-struct SetRow: View {
-    let set: SetEntity
     
-    var body: some View {
-        HStack(spacing: 8) {
-            Text("Set \(set.setNumber)")
+    private var emptyStateView: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "dumbbell")
+                .font(.system(size: 40))
+                .foregroundColor(.secondary)
+            Text("No sets recorded yet")
+                .font(.headline)
+            Text("Complete a workout with this movement to see your sets here")
                 .font(.caption)
                 .foregroundColor(.secondary)
-                .frame(width: 44) // Following Apple's minimum touch target size
-            
-            if set.usePrimarySplitMetrics {
-                Text("L: \(formatValue(set.primaryMetricValueLeft))")
-                Text("R: \(formatValue(set.primaryMetricValueRight))")
-            } else {
-                Text(formatValue(set.primaryMetricValue))
-            }
-            
-            Text(set.primaryMetricUnit ?? "")
-                .foregroundColor(.secondary)
-            
-            Spacer()
+                .multilineTextAlignment(.center)
         }
-        .frame(minHeight: 44) // Following Apple's minimum touch target size
-    }
-    
-    private func formatValue(_ value: Double) -> String {
-        String(format: "%.1f", value)
+        .frame(maxWidth: .infinity)
+        .padding()
     }
 }
 
@@ -474,4 +621,26 @@ private func calculateProgress(for movement: Movement) -> Double {
     return finalValue
 }
 
-
+// Helper function to get the metric unit from a movement
+private func getMetricUnit(for movement: Movement) -> String {
+    // Try to find the unit from the movement logs
+    if let logs = movement.movementLogs,
+       !logs.isEmpty {
+        let logsArray = (logs as NSSet).allObjects as? [MovementLog]
+        if let logsArray = logsArray,
+           !logsArray.isEmpty,
+           let firstLog = logsArray.first,
+           let sets = firstLog.sets,
+           (sets as NSSet).count > 0 {
+            let setsArray = (sets as NSSet).allObjects as? [SetEntity]
+            if let setsArray = setsArray,
+               !setsArray.isEmpty,
+               let firstSet = setsArray.first {
+                return firstSet.primaryMetricUnit ?? "lbs"
+            }
+        }
+    }
+    
+    // Default unit if no logs found
+    return "lbs"
+}

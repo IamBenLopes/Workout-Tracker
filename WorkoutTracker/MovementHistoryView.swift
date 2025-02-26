@@ -8,6 +8,7 @@ struct MovementHistoryView: View {
     @State private var movementLogs: [MovementLog] = []
     @State private var showingEditView = false
     @State private var selectedTimeRange: TimeRange = .month
+    @State private var timeRange: TimeRange = .month
     
     var body: some View {
         ScrollView {
@@ -16,7 +17,7 @@ struct MovementHistoryView: View {
                 QuickStatsCard(movement: movement)
                 
                 // Progress Graph Card
-                NavigationLink(destination: MovementGraphView(movement: movement)) {
+                NavigationLink(destination: MovementGraphView(movement: movement, timeRange: $timeRange)) {
                     ProgressPreviewCard(movement: movement)
                 }
                 
@@ -130,7 +131,7 @@ struct StatItem: View {
 
 struct ProgressPreviewCard: View {
     let movement: Movement
-    @State private var previewData: [DataPoint] = []
+    @State private var previewData: [WorkoutTracker.DataPoint] = []
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -197,7 +198,7 @@ struct ProgressPreviewCard: View {
                 }
             }
             
-            return DataPoint(date: date, value: maxValue)
+            return WorkoutTracker.DataPoint(date: date, value: maxValue)
         }
     }
 }

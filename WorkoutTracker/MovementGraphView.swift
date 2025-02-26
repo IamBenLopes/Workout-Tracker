@@ -5,62 +5,56 @@ import CoreData
 struct MovementGraphView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @ObservedObject var movement: Movement
-    @State private var weightData: [DataPoint] = []
-    @State private var repsData: [DataPoint] = []
-    @State private var selectedWeightPoint: DataPoint?
-    @State private var selectedRepsPoint: DataPoint?
-    @State private var timeRange: TimeRange = .month
+    @State private var weightData: [MovementDataPoint] = []
+    @State private var repsData: [MovementDataPoint] = []
+    @State private var selectedWeightPoint: MovementDataPoint?
+    @State private var selectedRepsPoint: MovementDataPoint?
+    @Binding var timeRange: TimeRange
+    
+    init(movement: Movement, timeRange: Binding<TimeRange>) {
+        self.movement = movement
+        self._timeRange = timeRange
+    }
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 16) { // Following consistent spacing guidelines
-                // Time Range Picker
-                Picker("Time Range", selection: $timeRange) {
-                    ForEach(TimeRange.allCases, id: \.self) { range in
-                        Text(range.rawValue).tag(range)
+        VStack(spacing: 16) {
+            if #available(iOS 16.0, *) {
+                if weightData.isEmpty {
+                    emptyStateView
+                } else {
+                    weightChartSection
+                    
+                    if let selectedPoint = selectedWeightPoint {
+                        weightDataDetailView(for: selectedPoint)
                     }
-                }
-                .pickerStyle(.segmented)
-                .padding(.horizontal)
-                .onChange(of: timeRange) { _, _ in
-                    loadGraphData()
-                }
-                
-                if #available(iOS 16.0, *) {
-                    if weightData.isEmpty {
-                        emptyStateView
-                    } else {
-                        weightChartSection
-                        
-                        if let selectedPoint = selectedWeightPoint {
-                            weightDataDetailView(for: selectedPoint)
-                        }
-                        
-                        Divider()
-                            .padding(.vertical)
-                        
+                    
+                    Divider()
+                        .padding(.vertical)
+                    
+                    if !repsData.isEmpty {
                         repsChartSection
                         
                         if let selectedPoint = selectedRepsPoint {
                             repsDataDetailView(for: selectedPoint)
                         }
                     }
-                } else {
-                    Text("Charts require iOS 16 or later")
-                        .foregroundColor(.secondary)
-                        .frame(maxWidth: .infinity, minHeight: 200)
-                        .background(Color(.systemGray6))
-                        .cornerRadius(10)
-                        .padding()
+                    
+                    progressSection
                 }
-                
-                progressSection
+            } else {
+                // Fallback for iOS 15 or earlier
+                Text("Charts require iOS 16 or later")
+                    .foregroundColor(.secondary)
+                    .padding()
             }
-            .padding(.vertical)
         }
+        .padding(.vertical)
         .navigationTitle(movement.name ?? "Unknown Movement")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
+            loadGraphData()
+        }
+        .onChange(of: timeRange) { _, _ in
             loadGraphData()
         }
     }
@@ -77,6 +71,7 @@ struct MovementGraphView: View {
             Text("Complete workouts to see your progress")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity, minHeight: 200)
         .background(Color(.systemGray6))
@@ -87,41 +82,55 @@ struct MovementGraphView: View {
     @available(iOS 16.0, *)
     private var weightChartSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Max Weight per Workout")
-                .font(.title3)
-                .padding(.horizontal)
+            HStack {
+                Text("Max Weight per Workout")
+                    .font(.title3)
+                    .fontWeight(.medium)
+                
+                Spacer()
+                
+                if let maxWeight = weightData.max(by: { $0.value < $1.value })?.value {
+                    Text("Max: \(String(format: "%.1f", maxWeight)) \(getMetricUnit())")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .padding(.horizontal)
             
-            Chart(weightData) { dataPoint in
-                LineMark(
-                    x: .value("Date", dataPoint.date),
-                    y: .value("Weight (lbs)", dataPoint.value)
-                )
-                .interpolationMethod(.catmullRom)
-                .foregroundStyle(.blue.gradient)
-                .symbol(.circle)
-                .symbolSize(50)
-            }
-            .frame(height: 300)
-            .chartXAxis {
-                AxisMarks(preset: .aligned) { _ in
-                    AxisGridLine()
-                    AxisTick()
-                    AxisValueLabel(format: .dateTime.month().day())
+            GeometryReader { geometry in
+                Chart(weightData) { dataPoint in
+                    LineMark(
+                        x: .value("Date", dataPoint.date),
+                        y: .value("Weight", dataPoint.value)
+                    )
+                    .interpolationMethod(.catmullRom)
+                    .foregroundStyle(.blue.gradient)
+                    .symbol(.circle)
+                    .symbolSize(50)
                 }
-            }
-            .chartYAxis {
-                AxisMarks { _ in
-                    AxisGridLine()
-                    AxisTick()
-                    AxisValueLabel()
+                .frame(height: min(300, geometry.size.height * 0.8))
+                .chartXAxis {
+                    AxisMarks(preset: .aligned) { _ in
+                        AxisGridLine()
+                        AxisTick()
+                        AxisValueLabel(format: .dateTime.month().day())
+                    }
                 }
+                .chartYAxis {
+                    AxisMarks { _ in
+                        AxisGridLine()
+                        AxisTick()
+                        AxisValueLabel()
+                    }
+                }
+                .chartPlotStyle { plotArea in
+                    plotArea
+                        .background(.gray.opacity(0.1))
+                        .border(.gray.opacity(0.2))
+                }
+                .padding()
             }
-            .chartPlotStyle { plotArea in
-                plotArea
-                    .background(.gray.opacity(0.1))
-                    .border(.gray.opacity(0.2))
-            }
-            .padding()
+            .frame(minHeight: 300)
         }
         .background(Color(.systemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -132,41 +141,55 @@ struct MovementGraphView: View {
     @available(iOS 16.0, *)
     private var repsChartSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Average Volume per Set (Weight × Reps)")
-                .font(.title3)
-                .padding(.horizontal)
+            HStack {
+                Text("Average Volume per Set")
+                    .font(.title3)
+                    .fontWeight(.medium)
+                
+                Spacer()
+                
+                if let maxVolume = repsData.max(by: { $0.value < $1.value })?.value {
+                    Text("Max: \(String(format: "%.1f", maxVolume))")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .padding(.horizontal)
             
-            Chart(repsData) { dataPoint in
-                LineMark(
-                    x: .value("Date", dataPoint.date),
-                    y: .value("Volume", dataPoint.value)
-                )
-                .interpolationMethod(.catmullRom)
-                .foregroundStyle(.green.gradient)
-                .symbol(.circle)
-                .symbolSize(50)
-            }
-            .frame(height: 300)
-            .chartXAxis {
-                AxisMarks(preset: .aligned) { _ in
-                    AxisGridLine()
-                    AxisTick()
-                    AxisValueLabel(format: .dateTime.month().day())
+            GeometryReader { geometry in
+                Chart(repsData) { dataPoint in
+                    LineMark(
+                        x: .value("Date", dataPoint.date),
+                        y: .value("Volume", dataPoint.value)
+                    )
+                    .interpolationMethod(.catmullRom)
+                    .foregroundStyle(.green.gradient)
+                    .symbol(.circle)
+                    .symbolSize(50)
                 }
-            }
-            .chartYAxis {
-                AxisMarks { _ in
-                    AxisGridLine()
-                    AxisTick()
-                    AxisValueLabel()
+                .frame(height: min(300, geometry.size.height * 0.8))
+                .chartXAxis {
+                    AxisMarks(preset: .aligned) { _ in
+                        AxisGridLine()
+                        AxisTick()
+                        AxisValueLabel(format: .dateTime.month().day())
+                    }
                 }
+                .chartYAxis {
+                    AxisMarks { _ in
+                        AxisGridLine()
+                        AxisTick()
+                        AxisValueLabel()
+                    }
+                }
+                .chartPlotStyle { plotArea in
+                    plotArea
+                        .background(.gray.opacity(0.1))
+                        .border(.gray.opacity(0.2))
+                }
+                .padding()
             }
-            .chartPlotStyle { plotArea in
-                plotArea
-                    .background(.gray.opacity(0.1))
-                    .border(.gray.opacity(0.2))
-            }
-            .padding()
+            .frame(minHeight: 300)
         }
         .background(Color(.systemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -174,217 +197,147 @@ struct MovementGraphView: View {
         .padding(.horizontal)
     }
     
-    private func weightDataDetailView(for point: DataPoint) -> some View {
+    private func weightDataDetailView(for point: MovementDataPoint) -> some View {
         let matchingRepsPoint = repsData.first { $0.date == point.date }
         return DataPointDetailCard(
             title: "Weight Details",
             date: point.date,
-            primaryValue: ("Weight", point.value),
-            secondaryValue: matchingRepsPoint.map { ("Reps", $0.value) }
+            metrics: [
+                MetricDetail(label: "Weight", value: point.value, unit: getMetricUnit()),
+                MetricDetail(label: "Volume", value: matchingRepsPoint?.value ?? 0, unit: "total")
+            ]
         )
     }
     
-    private func repsDataDetailView(for point: DataPoint) -> some View {
+    private func repsDataDetailView(for point: MovementDataPoint) -> some View {
         let matchingWeightPoint = weightData.first { $0.date == point.date }
         return DataPointDetailCard(
-            title: "Reps Details",
+            title: "Volume Details",
             date: point.date,
-            primaryValue: ("Reps", point.value),
-            secondaryValue: matchingWeightPoint.map { ("Weight", $0.value) }
+            metrics: [
+                MetricDetail(label: "Volume", value: point.value, unit: "total"),
+                MetricDetail(label: "Weight", value: matchingWeightPoint?.value ?? 0, unit: getMetricUnit())
+            ]
         )
     }
     
     private var progressSection: some View {
-        VStack(spacing: 8) {
-            Text("Overall Progress")
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Progress Overview")
                 .font(.headline)
+                .padding(.horizontal)
             
-            Text("\(calculateProgress())%")
-                .font(.title)
-                .foregroundColor(calculateProgress().starts(with: "-") ? .red : .green)
-        }
-        .padding()
-        .frame(maxWidth: .infinity)
-        .background(Color(.systemGray6))
-        .cornerRadius(10)
-        .padding(.horizontal)
-    }
-    
-    // MARK: - Helper Views
-    
-    private struct DataPointDetailCard: View {
-        let title: String
-        let date: Date
-        let primaryValue: (label: String, value: Double)
-        let secondaryValue: (label: String, value: Double)?
-        
-        var body: some View {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(title)
-                    .font(.headline)
-                
-                Text(date.formatted(date: .abbreviated, time: .omitted))
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                
-                HStack(spacing: 16) {
-                    DataValueView(label: primaryValue.label, value: primaryValue.value)
+            HStack(spacing: 16) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Progress Rate")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
                     
-                    if let secondary = secondaryValue {
-                        DataValueView(label: secondary.label, value: secondary.value)
+                    HStack(alignment: .firstTextBaseline, spacing: 4) {
+                        Text(calculateProgress())
+                            .font(.title2)
+                            .fontWeight(.bold)
+                        
+                        Text("%")
+                            .font(.headline)
+                            .foregroundColor(.secondary)
                     }
+                }
+                
+                Spacer()
+                
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text("Time Period")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
+                    Text(timeRange.rawValue)
+                        .font(.headline)
                 }
             }
             .padding()
-            .frame(maxWidth: .infinity, alignment: .leading)
             .background(Color(.systemGray6))
             .cornerRadius(10)
             .padding(.horizontal)
         }
+        .padding(.vertical)
     }
     
-    private struct DataValueView: View {
-        let label: String
-        let value: Double
-        
-        var body: some View {
-            VStack(alignment: .leading) {
-                Text(label)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                Text(String(format: "%.1f", value) as String)
-                    .font(.headline)
-            }
-        }
-    }
+    // MARK: - Data Loading
     
-    // MARK: - Helper Functions
     private func loadGraphData() {
         let fetchRequest: NSFetchRequest<MovementLog> = MovementLog.fetchRequest()
         let cutoffDate: Date = Calendar.current.date(byAdding: .day, value: -timeRange.days, to: Date()) ?? Date()
         
         fetchRequest.predicate = NSPredicate(format: "movement == %@ AND workout.date >= %@", 
-                                           argumentArray: [movement, cutoffDate])
-        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \MovementLog.workout?.date, ascending: true)]
-
+                                            movement, cutoffDate as NSDate)
+        
         do {
-            let movementLogs = try viewContext.fetch(fetchRequest)
-            processGraphData(from: movementLogs)
-        } catch {
-            print("Error fetching movement logs: \(error)")
-        }
-    }
-
-    private func processGraphData(from logs: [MovementLog]) {
-        var weightPoints: [DataPoint] = []
-        var volumePoints: [DataPoint] = []
-
-        for log in logs {
-            guard let workoutDate = log.workout?.date,
-                  let sets = log.sets as? Set<SetEntity> else { continue }
-
-            let relevantSets = sets.filter { set in
-                (set.primaryMetricType == "Weight" && set.secondaryMetricType == "Reps") ||
-                (set.primaryMetricType == "Reps" && set.secondaryMetricType == "Weight")
+            let logs = try viewContext.fetch(fetchRequest)
+            
+            // Process logs to extract data points
+            var weightPoints: [MovementDataPoint] = []
+            var repsPoints: [MovementDataPoint] = []
+            
+            // Group logs by date
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateStyle = .short
+            dateFormatter.timeStyle = .none
+            
+            let groupedLogs = Dictionary(grouping: logs) { log in
+                let date = log.date ?? Date()
+                return dateFormatter.string(from: date)
             }
-
-            var totalVolume: Double = 0
-            var maxWeight: Double = 0
-
-            for set in relevantSets {
-                let weight: Double
-                let reps: Double
+            
+            for (dateString, logs) in groupedLogs {
+                guard let date = dateFormatter.date(from: dateString) else { continue }
                 
-                if set.primaryMetricType == "Weight" {
-                    weight = set.primaryMetricValue
-                    reps = set.secondaryMetricValue
-                } else {
-                    weight = set.secondaryMetricValue
-                    reps = set.primaryMetricValue
+                // Find max weight for this date
+                var maxWeight: Double = 0
+                var totalVolume: Double = 0
+                var setCount: Int = 0
+                
+                for log in logs {
+                    for set in log.setsArray {
+                        let weight = set.usePrimarySplitMetrics ? 
+                            max(set.primaryMetricValueLeft, set.primaryMetricValueRight) : 
+                            set.primaryMetricValue
+                        
+                        maxWeight = max(maxWeight, weight)
+                        
+                        // Calculate volume (weight × reps)
+                        if set.secondaryMetricType == "Reps" {
+                            let reps = set.secondaryMetricValue
+                            totalVolume += weight * reps
+                            setCount += 1
+                        }
+                    }
                 }
                 
-                // Calculate volume (weight × reps)
-                totalVolume += weight * reps
-                // Track max weight
-                maxWeight = max(maxWeight, weight)
+                // Add data points if we have valid data
+                if maxWeight > 0 {
+                    weightPoints.append(MovementDataPoint(date: date, value: maxWeight))
+                }
+                
+                if setCount > 0 {
+                    let avgVolumePerSet = totalVolume / Double(setCount)
+                    repsPoints.append(MovementDataPoint(date: date, value: avgVolumePerSet))
+                }
             }
-
-            if !relevantSets.isEmpty {
-                let avgVolume = totalVolume / Double(relevantSets.count)
-                weightPoints.append(DataPoint(date: workoutDate, value: maxWeight))
-                volumePoints.append(DataPoint(date: workoutDate, value: avgVolume))
-            }
-        }
-
-        self.weightData = weightPoints
-        self.repsData = volumePoints // Using repsData for volume
-    }
-
-    @available(iOS 16.0, *)
-    private func createWeightChartOverlay(proxy: ChartProxy, geometry: GeometryProxy) -> some View {
-        Rectangle()
-            .fill(.clear)
-            .contentShape(Rectangle())
-            .gesture(
-                DragGesture()
-                    .onChanged { value in
-                        updateSelectedWeightPoint(value: value, proxy: proxy, geometry: geometry)
-                    }
-            )
-    }
-
-    @available(iOS 16.0, *)
-    private func createRepsChartOverlay(proxy: ChartProxy, geometry: GeometryProxy) -> some View {
-        Rectangle()
-            .fill(.clear)
-            .contentShape(Rectangle())
-            .gesture(
-                DragGesture()
-                    .onChanged { value in
-                        updateSelectedRepsPoint(value: value, proxy: proxy, geometry: geometry)
-                    }
-            )
-    }
-
-    @available(iOS 16.0, *)
-    private func updateSelectedWeightPoint(value: DragGesture.Value, proxy: ChartProxy, geometry: GeometryProxy) {
-        let frame = getPlotFrame(proxy, geometry: geometry)
-        let currentX = value.location.x - frame.origin.x
-        
-        guard currentX >= 0, currentX <= frame.width,
-              let date: Date = proxy.value(atX: currentX) else {
-            return
-        }
-        
-        selectedWeightPoint = weightData.min(by: {
-            abs($0.date.timeIntervalSince(date)) < abs($1.date.timeIntervalSince(date))
-        })
-    }
-
-    @available(iOS 16.0, *)
-    private func updateSelectedRepsPoint(value: DragGesture.Value, proxy: ChartProxy, geometry: GeometryProxy) {
-        let frame = getPlotFrame(proxy, geometry: geometry)
-        let currentX = value.location.x - frame.origin.x
-        
-        guard currentX >= 0, currentX <= frame.width,
-              let date: Date = proxy.value(atX: currentX) else {
-            return
-        }
-        
-        selectedRepsPoint = repsData.min(by: {
-            abs($0.date.timeIntervalSince(date)) < abs($1.date.timeIntervalSince(date))
-        })
-    }
-
-    @available(iOS 16.0, *)
-    private func getPlotFrame(_ proxy: ChartProxy, geometry: GeometryProxy) -> CGRect {
-        if #available(iOS 17.0, *) {
-            return geometry[proxy.plotFrame!]
-        } else {
-            return geometry[proxy.plotAreaFrame]
+            
+            // Sort by date
+            weightPoints.sort { $0.date < $1.date }
+            repsPoints.sort { $0.date < $1.date }
+            
+            // Update state
+            self.weightData = weightPoints
+            self.repsData = repsPoints
+            
+        } catch {
+            print("Error loading graph data: \(error)")
         }
     }
-
+    
     private func calculateProgress() -> String {
         guard let firstLog = weightData.first,
               let lastLog = weightData.last,
@@ -394,5 +347,77 @@ struct MovementGraphView: View {
         
         let progressPercentage = ((lastLog.value - firstLog.value) / firstLog.value) * 100
         return String(format: "%.1f", progressPercentage)
+    }
+    
+    // Helper function to get the unit from the movement or its sets
+    private func getMetricUnit() -> String {
+        // Try to find the unit from the movement logs
+        if let logs = movement.movementLogs,
+           let logsArray = (logs as NSSet).allObjects as? [MovementLog],
+           !logsArray.isEmpty,
+           let firstLog = logsArray.first,
+           let sets = firstLog.sets,
+           let setsArray = (sets as NSSet).allObjects as? [SetEntity],
+           !setsArray.isEmpty,
+           let firstSet = setsArray.first {
+            return firstSet.primaryMetricUnit ?? "lbs"
+        }
+        
+        // Default unit if no logs found
+        return "lbs"
+    }
+}
+
+struct MovementDataPoint: Identifiable {
+    let id = UUID()
+    let date: Date
+    let value: Double
+}
+
+struct MetricDetail {
+    let label: String
+    let value: Double
+    let unit: String
+}
+
+struct DataPointDetailCard: View {
+    let title: String
+    let date: Date
+    let metrics: [MetricDetail]
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text(title)
+                    .font(.headline)
+                
+                Spacer()
+                
+                Text(date, style: .date)
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+            
+            Divider()
+            
+            ForEach(metrics.indices, id: \.self) { index in
+                let metric = metrics[index]
+                HStack {
+                    Text(metric.label)
+                        .font(.subheadline)
+                    
+                    Spacer()
+                    
+                    Text("\(String(format: "%.1f", metric.value)) \(metric.unit)")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                }
+                .padding(.vertical, 4)
+            }
+        }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(10)
+        .padding(.horizontal)
     }
 }
