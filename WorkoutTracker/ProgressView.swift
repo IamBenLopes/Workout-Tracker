@@ -1,6 +1,8 @@
 import SwiftUI
 import CoreData
 
+// Remove all Core Data model redeclarations since they already exist elsewhere
+
 enum TimeRange: String, CaseIterable {
     case week = "Week"
     case month = "Month"
@@ -129,8 +131,8 @@ struct MovementRowView: View {
         if let movementLogs = movement.movementLogs {
             let logs = Array(movementLogs)
             let sortedLogs = logs.sorted { 
-                let date1 = $0.date ?? .distantPast
-                let date2 = $1.date ?? .distantPast
+                let date1 = $0.date ?? Date.distantPast
+                let date2 = $1.date ?? Date.distantPast
                 return date1 > date2
             }
             
@@ -275,9 +277,9 @@ struct MovementDetailView: View {
                         .padding(.horizontal)
                     
                     StatsSummaryView(movement: movement, timeRange: timeRange)
-                        .background(Color(.systemBackground))
+                        .background(Color.gray.opacity(0.1))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .shadow(color: .gray.opacity(0.2), radius: 5, x: 0, y: 2)
+                        .shadow(color: Color.gray.opacity(0.2), radius: 5, x: 0, y: 2)
                         .padding(.horizontal)
                 }
                 
@@ -298,9 +300,9 @@ struct MovementDetailView: View {
                     .padding(.horizontal)
                     
                     RecentSetsView(movement: movement, showAll: showingAllSets)
-                        .background(Color(.systemBackground))
+                        .background(Color.gray.opacity(0.1))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .shadow(color: .gray.opacity(0.2), radius: 5, x: 0, y: 2)
+                        .shadow(color: Color.gray.opacity(0.2), radius: 5, x: 0, y: 2)
                         .padding(.horizontal)
                 }
             }
@@ -340,35 +342,151 @@ struct StatsSummaryView: View {
     var body: some View {
         VStack(spacing: 12) {
             if let stats = stats {
-                HStack {
-                    StatCard(title: "Personal Best", value: stats.personalBest, unit: stats.unit, iconName: "trophy.fill", color: .yellow)
-                    StatCard(title: "Average", value: stats.average, unit: stats.unit, iconName: "chart.bar.fill", color: .blue)
-                    if stats.usesSplitMetrics {
-                        StatCard(title: "L/R Ratio", value: stats.leftRightRatio, unit: "%", iconName: "arrow.left.arrow.right", color: .green)
+                // Break up the stats cards into separate view builders
+                VStack(spacing: 12) {
+                    HStack {
+                        personalBestCard(stats: stats)
+                        averageCard(stats: stats)
+                        
+                        if stats.usesSplitMetrics {
+                            leftRightRatioCard(stats: stats)
+                        }
+                    }
+                    
+                    if let volume = stats.totalVolume {
+                        totalVolumeCard(stats: stats, volume: volume)
                     }
                 }
-                
-                if let volume = stats.totalVolume {
-                    StatCard(title: "Total Volume", value: volume, unit: stats.unit, iconName: "sum", color: .purple)
-                        .frame(maxWidth: .infinity)
-                }
             } else {
-                HStack(spacing: 12) {
-                    ProgressView()
-                    Text("Loading stats...")
-                        .foregroundColor(.secondary)
-                }
-                .frame(height: 100)
+                // Loading state
+                loadingView
             }
         }
         .padding()
         .onAppear {
             loadStats()
         }
-        .onChange(of: timeRange) { oldValue, newValue in
+        .onChange(of: timeRange) { _, _ in
             loadStats()
         }
     }
+    
+    // MARK: - Component Views
+    
+    private var loadingView: some View {
+        HStack(spacing: 12) {
+            ProgressView()
+            Text("Loading stats...")
+                .foregroundColor(.secondary)
+        }
+        .frame(height: 100)
+    }
+    
+    private func personalBestCard(stats: MovementSummaryStats) -> some View {
+        VStack {
+            Image(systemName: "trophy.fill")
+                .font(.system(size: 20))
+                .foregroundColor(.yellow)
+                .padding(.bottom, 2)
+            
+            Text("Personal Best")
+                .font(.caption)
+                .foregroundColor(Color.secondary)
+            
+            Text(String(format: "%.1f", stats.personalBest))
+                .font(.headline)
+                .foregroundColor(Color.primary)
+            
+            Text(stats.unit)
+                .font(.caption2)
+                .foregroundColor(Color.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 10)
+        .padding(.horizontal, 5)
+        .background(Color.yellow.opacity(0.1))
+        .cornerRadius(10)
+    }
+    
+    private func averageCard(stats: MovementSummaryStats) -> some View {
+        VStack {
+            Image(systemName: "chart.bar.fill")
+                .font(.system(size: 20))
+                .foregroundColor(.blue)
+                .padding(.bottom, 2)
+            
+            Text("Average")
+                .font(.caption)
+                .foregroundColor(Color.secondary)
+            
+            Text(String(format: "%.1f", stats.average))
+                .font(.headline)
+                .foregroundColor(Color.primary)
+            
+            Text(stats.unit)
+                .font(.caption2)
+                .foregroundColor(Color.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 10)
+        .padding(.horizontal, 5)
+        .background(Color.blue.opacity(0.1))
+        .cornerRadius(10)
+    }
+    
+    private func leftRightRatioCard(stats: MovementSummaryStats) -> some View {
+        VStack {
+            Image(systemName: "arrow.left.arrow.right")
+                .font(.system(size: 20))
+                .foregroundColor(.green)
+                .padding(.bottom, 2)
+            
+            Text("L/R Ratio")
+                .font(.caption)
+                .foregroundColor(Color.secondary)
+            
+            Text(String(format: "%.1f", stats.leftRightRatio))
+                .font(.headline)
+                .foregroundColor(Color.primary)
+            
+            Text("%")
+                .font(.caption2)
+                .foregroundColor(Color.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 10)
+        .padding(.horizontal, 5)
+        .background(Color.green.opacity(0.1))
+        .cornerRadius(10)
+    }
+    
+    private func totalVolumeCard(stats: MovementSummaryStats, volume: Double) -> some View {
+        VStack {
+            Image(systemName: "sum")
+                .font(.system(size: 20))
+                .foregroundColor(.purple)
+                .padding(.bottom, 2)
+            
+            Text("Total Volume")
+                .font(.caption)
+                .foregroundColor(Color.secondary)
+            
+            Text(String(format: "%.1f", volume))
+                .font(.headline)
+                .foregroundColor(Color.primary)
+            
+            Text(stats.unit)
+                .font(.caption2)
+                .foregroundColor(Color.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 10)
+        .padding(.horizontal, 5)
+        .background(Color.purple.opacity(0.1))
+        .cornerRadius(10)
+    }
+    
+    // MARK: - Data Loading
     
     private func loadStats() {
         // Implement stats calculation based on timeRange
@@ -398,40 +516,6 @@ struct StatsSummaryView: View {
     }
 }
 
-struct StatCard: View {
-    let title: String
-    let value: Double
-    let unit: String
-    let iconName: String
-    let color: Color
-    
-    var body: some View {
-        VStack(spacing: 6) {
-            Image(systemName: iconName)
-                .font(.system(size: 20))
-                .foregroundColor(color)
-                .padding(.bottom, 2)
-            
-            Text(title)
-                .font(.caption)
-                .foregroundColor(.secondary)
-            
-            Text(String(format: "%.1f", value))
-                .font(.headline)
-                .foregroundColor(.primary)
-            
-            Text(unit)
-                .font(.caption2)
-                .foregroundColor(.secondary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 10)
-        .padding(.horizontal, 5)
-        .background(color.opacity(0.1))
-        .cornerRadius(10)
-    }
-}
-
 struct MovementSummaryStats {
     let personalBest: Double
     let average: Double
@@ -447,77 +531,8 @@ struct RecentSetsView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            if let movementLogs = movement.movementLogs {
-                let sortedLogs = Array(movementLogs)
-                    .sorted { ($0.date ?? .distantPast) > ($1.date ?? .distantPast) }
-                
-                if sortedLogs.isEmpty {
-                    emptyStateView
-                } else {
-                    let logsToShow = showAll ? sortedLogs : Array(sortedLogs.prefix(3))
-                    
-                    ForEach(logsToShow, id: \.self) { log in
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Text(log.formattedDate)
-                                    .font(.subheadline)
-                                    .fontWeight(.semibold)
-                                
-                                Spacer()
-                                
-                                Text(log.workout?.workoutName ?? "Unknown Workout")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            
-                            Divider()
-                            
-                            ForEach(log.setsArray.prefix(3), id: \.self) { set in
-                                HStack {
-                                    Text("Set \(set.setNumber)")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                        .frame(width: 50, alignment: .leading)
-                                    
-                                    if set.usePrimarySplitMetrics {
-                                        HStack(spacing: 2) {
-                                            Text("L: \(Int(set.primaryMetricValueLeft))")
-                                            Text("R: \(Int(set.primaryMetricValueRight))")
-                                        }
-                                        .font(.subheadline)
-                                    } else {
-                                        Text("\(Int(set.primaryMetricValue))")
-                                            .font(.subheadline)
-                                    }
-                                    
-                                    Text(set.primaryMetricUnit ?? "")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                    
-                                    Spacer()
-                                    
-                                    if set.secondaryMetricValue > 0 && set.secondaryMetricType == "Reps" {
-                                        Text("\(Int(set.secondaryMetricValue)) reps")
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
-                                    }
-                                }
-                                .padding(.vertical, 4)
-                            }
-                            
-                            if log.setsArray.count > 3 {
-                                Text("+ \(log.setsArray.count - 3) more sets")
-                                    .font(.caption)
-                                    .foregroundColor(.blue)
-                                    .padding(.top, 4)
-                            }
-                        }
-                        .padding()
-                        .background(Color(.systemGray6))
-                        .cornerRadius(10)
-                        .padding(.horizontal)
-                    }
-                }
+            if let movementLogs = movement.movementLogs, !Array(movementLogs).isEmpty {
+                workoutLogsContent
             } else {
                 emptyStateView
             }
@@ -525,13 +540,114 @@ struct RecentSetsView: View {
         .padding(.vertical)
     }
     
+    // MARK: - Content Views
+    
+    private var workoutLogsContent: some View {
+        let logsArray = getFormattedLogs()
+        
+        return VStack(spacing: 16) {
+            ForEach(logsArray) { logInfo in
+                workoutLogCard(for: logInfo.log, date: logInfo.formattedDate, workoutName: logInfo.workoutName)
+            }
+        }
+    }
+    
+    private func workoutLogCard(for log: MovementLog, date: String, workoutName: String) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // Header with date and workout name
+            HStack {
+                Text(date)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                
+                Spacer()
+                
+                Text(workoutName)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            Divider()
+            
+            // Sets Display
+            setsList(for: log)
+        }
+        .padding()
+        .background(Color.gray.opacity(0.1))
+        .cornerRadius(10)
+        .padding(.horizontal)
+    }
+    
+    private func setsList(for log: MovementLog) -> some View {
+        let sets = log.setsArray
+        let setsToShow = sets.prefix(3)
+        
+        return VStack(alignment: .leading, spacing: 4) {
+            ForEach(Array(setsToShow), id: \.self) { set in
+                setSummaryRow(set: set)
+            }
+            
+            if sets.count > 3 {
+                Text("+ \(sets.count - 3) more sets")
+                    .font(.caption)
+                    .foregroundColor(.blue)
+                    .padding(.top, 4)
+            }
+        }
+    }
+    
+    private func setSummaryRow(set: SetEntity) -> some View {
+        HStack {
+            Text("Set \(set.setNumber)")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .frame(width: 50, alignment: .leading)
+            
+            // Metric values
+            metricDisplay(for: set)
+            
+            Spacer()
+            
+            // Secondary metric (if available)
+            if set.secondaryMetricValue > 0 && set.secondaryMetricType == "Reps" {
+                Text("\(Int(set.secondaryMetricValue)) reps")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+        }
+        .padding(.vertical, 4)
+    }
+    
+    private func metricDisplay(for set: SetEntity) -> some View {
+        HStack(spacing: 2) {
+            if set.usePrimarySplitMetrics {
+                Text("L: \(Int(set.primaryMetricValueLeft))")
+                    .font(.subheadline)
+                Text("R: \(Int(set.primaryMetricValueRight))")
+                    .font(.subheadline)
+            } else {
+                Text("\(Int(set.primaryMetricValue))")
+                    .font(.subheadline)
+            }
+            
+            Text(set.primaryMetricUnit ?? "")
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+    }
+    
+    // MARK: - Empty State
+    
     private var emptyStateView: some View {
         VStack(spacing: 12) {
             Image(systemName: "dumbbell")
                 .font(.system(size: 40))
                 .foregroundColor(.secondary)
+                .accessibility(hidden: true)
+            
             Text("No sets recorded yet")
                 .font(.headline)
+            
             Text("Complete a workout with this movement to see your sets here")
                 .font(.caption)
                 .foregroundColor(.secondary)
@@ -539,6 +655,41 @@ struct RecentSetsView: View {
         }
         .frame(maxWidth: .infinity)
         .padding()
+    }
+    
+    // MARK: - Helper Methods
+    
+    private struct LogInfo: Identifiable {
+        let id = UUID()
+        let log: MovementLog
+        let formattedDate: String
+        let workoutName: String
+    }
+    
+    private func getFormattedLogs() -> [LogInfo] {
+        guard let movementLogs = movement.movementLogs else { return [] }
+        
+        // Convert to array
+        let logsArray = Array(movementLogs)
+        
+        // Sort by date
+        let sortedLogs = logsArray.sorted { 
+            let date1 = $0.date ?? Date.distantPast
+            let date2 = $1.date ?? Date.distantPast
+            return date1 > date2 
+        }
+        
+        // Apply limit if not showing all
+        let logsToProcess = showAll ? sortedLogs : Array(sortedLogs.prefix(3))
+        
+        // Format data for display
+        return logsToProcess.map { log in
+            LogInfo(
+                log: log,
+                formattedDate: log.formattedDate,
+                workoutName: log.workout?.workoutName ?? "Unknown Workout"
+            )
+        }
     }
 }
 
@@ -594,33 +745,6 @@ extension Movement {
     }
 }
 
-private func processMovementLogs(_ movement: Movement) -> [MovementLog] {
-    guard let movementLogs = movement.movementLogs else { return [] }
-    return Array(movementLogs)
-}
-
-private func calculateProgress(for movement: Movement) -> Double {
-    let logs = processMovementLogs(movement)
-    
-    // Break down complex calculations
-    let filteredLogs = logs.filter { log in
-        // Add your filtering conditions here
-        return true // Replace with actual filtering logic
-    }
-    
-    let calculatedValues = filteredLogs.map { log in
-        // Add your mapping logic here
-        return 0.0 // Replace with actual calculation
-    }
-    
-    let finalValue = calculatedValues.reduce(0.0) { sum, value in
-        // Add your reduction logic here
-        return sum + value
-    }
-    
-    return finalValue
-}
-
 // Helper function to get the metric unit from a movement
 private func getMetricUnit(for movement: Movement) -> String {
     // Try to find the unit from the movement logs
@@ -644,3 +768,5 @@ private func getMetricUnit(for movement: Movement) -> String {
     // Default unit if no logs found
     return "lbs"
 }
+
+// MovementGraphView is defined in MovementGraphView.swift
